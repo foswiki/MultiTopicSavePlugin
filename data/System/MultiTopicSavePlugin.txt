@@ -17,12 +17,13 @@ In the following example the plugin is used to
    * Make a formatted search which finds a number of topics
    * Display selected fields in editable form. The field types are text, textarea, radio, checkbox, and select (all the formats supported by the plugin)
    * Note that with field types where we want to know the content a field from each found topic, we need to delay the expansion of MULTITOPICSAVEINPUT till after the SEARCH is complete and has produced its result. This is why the macro is escaped by $percnt and $quot for the types radio, checkbox, and select.
+   * Note that for textareas we cannot use the SEARCH feature =$formfield= because it encodes newlines as &lt;br /&gt; (to avoid breaking tables) which is not desired when you want to show the current value in a text box. The example below uses %<nop>FORMFIELD% instead which does not perform any translation. Linebreaks will not break TML defined tables when they are inside a textarea field.
 
 <verbatim>
 <form action='%SCRIPTURL{"rest"}%/MultiTopicSavePlugin/multitopicsave' method="post">
 
 %SEARCH{"MultiTopicSaveTestTarget" scope="topic" nonoise="on"
-    format="| $topic | %MULTITOPICSAVEINPUT{"Option" type="text" size="20" web="$web" topic="$topic" value="$formfield(Option)"}% | %MULTITOPICSAVEINPUT{"Description" type="textarea" web="$web" topic="$topic" size="20x4" value="$percntFORMFIELD{$quotDescription$quot web=$quot$web$quot topic=$quot$topic$quot}$percnt" }% | $percntMULTITOPICSAVEINPUT{$quotType$quot type=$quotradio$quot size=$quot2$quot web=$quot$web$quot topic=$quot$topic$quot value=$quot$formfield(Type)$quot options=$quotBoolean, Integer, String, Discrete Strings$quot }$percnt | $percntMULTITOPICSAVEINPUT{$quotDefault$quot type=$quotcheckbox$quot size=$quot2$quot web=$quot$web$quot topic=$quot$topic$quot value=$quot$formfield(Default)$quot options=$quotabe, kat, elefant, mus$quot }$percnt | $percntMULTITOPICSAVEINPUT{$quotThird$quot type=$quotselect$quot size=$quot0$quot multiple=$quoton$quot web=$quot$web$quot topic=$quot$topic$quot value=$quot$formfield(Third)$quot options=$quotabe, kat, elefant, mus$quot }$percnt |"
+    format="| $topic | %MULTITOPICSAVEINPUT{"Option" type="text" size="20" web="$web" topic="$topic" value="$formfield(Option)"}% | %MULTITOPICSAVEINPUT{"Description" type="textarea" web="$web" topic="$topic" size="20x4" value="$percntFORMFIELD{$quotDescription$quot web=$quot$web$quot topic=$quot$topic$quot}$percnt" }% | $percntMULTITOPICSAVEINPUT{$quotType$quot type=$quotradio$quot size=$quot2$quot web=$quot$web$quot topic=$quot$topic$quot value=$quot$formfield(Type)$quot options=$quotBoolean, Integer, String, Discrete Strings$quot }$percnt | $percntMULTITOPICSAVEINPUT{$quotDefault$quot type=$quotcheckbox$quot size=$quot2$quot web=$quot$web$quot topic=$quot$topic$quot value=$quot$formfield(Default)$quot options=$quotape, cat, elephant, mouse$quot }$percnt | $percntMULTITOPICSAVEINPUT{$quotThird$quot type=$quotselect$quot size=$quot0$quot multiple=$quoton$quot web=$quot$web$quot topic=$quot$topic$quot value=$quot$formfield(Third)$quot options=$quotape, cat, elephant, mouse$quot }$percnt |"
 }%
 
 %MULTITOPICSAVESUBMIT{"Submit all changes"}%
@@ -73,6 +74,7 @@ To ease this task you can use the MULTITOPICSAVESUBMIT which creates a submit bu
       * topic = name of the target topic. In formatted searches you can put $topic here
       * value = the value that is put in the field by default
       * options = the values to choose between for types radio, select etc. This value is ignored for text and textarea. Options are separated by commas, example: options="dog, cat, horse"
+
 
 <!--
 One line description, required for extensions repository catalog.
