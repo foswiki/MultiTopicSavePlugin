@@ -1,0 +1,98 @@
+%META:TOPICPARENT{name="Plugins"}%
+---+ Multi Topic Save Plugin
+
+%SHORTDESCRIPTION%
+
+This plugin allows the user to submit updates to the dataform in multiple topics in one single edit/submit cycle.
+
+The users can create a topic which displays the fields from many topics as editable fields. The users can edit the field values and when they click a submit button all the topics with fields that were changed will be updated.
+
+The plugin will ignore topics that the user does not have write access to.
+
+
+---++ Examples
+
+In the following example the plugin is used to
+
+   * Make a formatted search which finds a number of topics
+   * Display selected fields in editable form. The field types are text, textarea, radio, checkbox, and select (all the formats supported by the plugin)
+   * Note that with field types where we want to know the content a field from each found topic, we need to delay the expansion of MULTITOPICSAVEINPUT till after the SEARCH is complete and has produced its result. This is why the macro is escaped by $percnt and $quot for the types radio, checkbox, and select.
+
+<verbatim>
+<form action='%SCRIPTURL{"rest"}%/MultiTopicSavePlugin/multitopicsave' method="post">
+
+%SEARCH{"MultiTopicSaveTestTarget" scope="topic" nonoise="on"
+    format="| $topic | %MULTITOPICSAVEINPUT{"Option" type="text" size="20" web="$web" topic="$topic" value="$formfield(Option)"}% | %MULTITOPICSAVEINPUT{"Description" type="textarea" web="$web" topic="$topic" size="20x4" value="$percntFORMFIELD{$quotDescription$quot web=$quot$web$quot topic=$quot$topic$quot}$percnt" }% | $percntMULTITOPICSAVEINPUT{$quotType$quot type=$quotradio$quot size=$quot2$quot web=$quot$web$quot topic=$quot$topic$quot value=$quot$formfield(Type)$quot options=$quotBoolean, Integer, String, Discrete Strings$quot }$percnt | $percntMULTITOPICSAVEINPUT{$quotDefault$quot type=$quotcheckbox$quot size=$quot2$quot web=$quot$web$quot topic=$quot$topic$quot value=$quot$formfield(Default)$quot options=$quotabe, kat, elefant, mus$quot }$percnt | $percntMULTITOPICSAVEINPUT{$quotThird$quot type=$quotselect$quot size=$quot0$quot multiple=$quoton$quot web=$quot$web$quot topic=$quot$topic$quot value=$quot$formfield(Third)$quot options=$quotabe, kat, elefant, mus$quot }$percnt |"
+}%
+
+%MULTITOPICSAVESUBMIT{"Submit all changes"}%
+
+</form>
+</verbatim>
+
+
+---++ Plugin Use
+
+In the topic you must create a html form which targets the rest script of this plugin. This must be a post. The form would look like this
+
+<verbatim>
+<form action='%SCRIPTURL{"rest"}%/MultiTopicSavePlugin/multitopicsave' method="post">
+</form>
+</verbatim>
+
+In the form you need to define fields that must have the name: =multitopicsavefield{Webname.Topicname}{Fieldname}= where the Webname.Topicname is the fully qualified name of the target topic and the Fieldname is the name of the form field you want to change.
+
+Example
+<verbatim>
+<input type='text' size='20' name='multitopicsavefield{Myweb.MultiTopicSaveTestTarget2}{Name}' value='$formfield(Name}' />
+</verbatim>
+
+To ease this task you can use the MULTITOPICSAVEINPUT macro to generate the correct fields. At of this moment only text and textarea fields are supported by a macro. But other types can be used by using HTML.
+
+In addition the form must submit two hidden fields redirectweb and redirecttopic that specify the topic to which you are redirected when you submit. 
+
+<verbatim>
+<input type='hidden' name='redirectweb' value='Myweb' />
+<input type='hidden' name='redirecttopic' value='MultiTopicSaveTest' />
+</verbatim>
+
+To ease this task you can use the MULTITOPICSAVESUBMIT which creates a submit button and per default redirects the user back to the original topic from which the form was submitted.
+
+   * %<nop>MULTITOPICSAVESUBMIT{"Submit button text}%
+      * This Macro adds a submit button with the text defined. It additionally adds the hidden fields that the plugin needs to send to return to the current topic after submission.
+      
+   * %<nop>MULTITOPICSAVEINPUT{"Field name" type="field type" multiple="on|off" size="field size" web="webname" topic="topicname" value="desplayed value in field" options="list of options"}%
+      * Field name - the name of the field in the data form. If the field name has spaces you need to ommit the spaces
+      * type = type of input field. Valid types are text, textarea, radio, checkbox, and select
+      * multiple = allow multiple values for fields of the select type. For other types of fields this parameter is ignored
+      * size = the size of the input text field (single number) or textarea (width x height).
+         * Example for textarea: '80x4' for 80 columns wide by 4 lines tall.
+         * For checkbox and radio fields the size defines the number of buttons/checkboxes shown before in each displayed row of buttons/checkboxes. To show all the buttons in one row select a very large number. To show them all below each other set size to 1. Default is 1.
+         * For select the size defines the number of values displayed in the input window. If no size is given all values are shown for multiple fields and a simple pulldown is shown for non-multiple.
+      * web = web of the target topic. In formatted searches you can put $web here
+      * topic = name of the target topic. In formatted searches you can put $topic here
+      * value = the value that is put in the field by default
+      * options = the values to choose between for types radio, select etc. This value is ignored for text and textarea
+
+
+Here is an example
+
+<!--
+One line description, required for extensions repository catalog.
+   * Set SHORTDESCRIPTION = %$SHORTDESCRIPTION%
+-->
+
+---++ Installation
+%$INSTALL_INSTRUCTIONS%
+
+---++ Plugin Info
+
+|  Author: | Foswiki:Main.KennethLavrsen |
+|  Copyright: | &copy; 2010, Kenneth Lavrsen |
+|  License: | GPL ([[http://www.gnu.org/copyleft/gpl.html][GNU General Public License]]) |
+|  Release: | %$RELEASE% |
+|  Version: | %$VERSION% |
+|  Change&nbsp;History: | <!-- versions below in reverse order -->&nbsp; |
+|  16 Feb 2010 (1.0) | Not yet released but now a fully functional plugin that can do some work |
+|  Home: | http://foswiki.org/Extensions/%TOPIC%Dev |
+|  Support: | http://foswiki.org/Support/%TOPIC% |
