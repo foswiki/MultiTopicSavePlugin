@@ -72,10 +72,7 @@ To ease this task you can use the MULTITOPICSAVESUBMIT which creates a submit bu
       * web = web of the target topic. In formatted searches you can put $web here
       * topic = name of the target topic. In formatted searches you can put $topic here
       * value = the value that is put in the field by default
-      * options = the values to choose between for types radio, select etc. This value is ignored for text and textarea
-
-
-Here is an example
+      * options = the values to choose between for types radio, select etc. This value is ignored for text and textarea. Options are separated by commas, example: options="dog, cat, horse"
 
 <!--
 One line description, required for extensions repository catalog.
