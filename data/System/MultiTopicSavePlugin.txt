@@ -92,6 +92,6 @@ One line description, required for extensions repository catalog.
 |  Release: | %$RELEASE% |
 |  Version: | %$VERSION% |
 |  Change&nbsp;History: | <!-- versions below in reverse order -->&nbsp; |
-|  16 Feb 2010 (1.0) | Not yet released but now a fully functional plugin that can do some work |
+|  16 Feb 2010 (1.0) | First version of plugin |
 |  Home: | http://foswiki.org/Extensions/%TOPIC%Dev |
 |  Support: | http://foswiki.org/Support/%TOPIC% |

@@ -327,7 +327,6 @@ sub restMultiTopicSave {
             my ( $meta, $text ) = Foswiki::Func::readTopic( $web, $topic );
             my $oldValue = $meta->get( 'FIELD', $fieldName )->{'value'};
             
-            # Smell: Will this work with multivalue fields? 
             if ( $oldValue ne $value ) {
                 unless (
                     Foswiki::Func::checkAccessPermission(
