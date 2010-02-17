@@ -3,6 +3,9 @@
 
 %SHORTDESCRIPTION%
 
+%ATTACHURL%/example.png <br />
+_Example screenshot_
+
 This plugin allows the user to submit updates to the dataform in multiple topics in one single edit/submit cycle.
 
 The users can create a topic which displays the fields from many topics as editable fields. The users can edit the field values and when they click a submit button all the topics with fields that were changed will be updated.
@@ -95,3 +98,5 @@ One line description, required for extensions repository catalog.
 |  16 Feb 2010 (1.0) | First version of plugin |
 |  Home: | http://foswiki.org/Extensions/%TOPIC%Dev |
 |  Support: | http://foswiki.org/Support/%TOPIC% |
+
+%META:FILEATTACHMENT{name="example.png" attachment="example.png" attr="h" comment="" date="1266362936" path="example.png" user="ProjectContributor" version="1"}%

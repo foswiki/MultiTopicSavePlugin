@@ -1,2 +1,3 @@
 data/System/MultiTopicSavePlugin.txt 0644 Plugin doc page
 lib/Foswiki/Plugins/MultiTopicSavePlugin.pm 0444 Plugin Perl module
+pub/System/MultiTopicSavePlugin/example.png 0644 Plugin image
