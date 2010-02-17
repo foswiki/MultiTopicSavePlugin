@@ -170,6 +170,15 @@ sub _MULTITOPICSAVEINPUT {
     $targettopic = "$targetweb.$targettopic";
     my $multiple = $params->{multiple} || 0;
     my $field = $params->{_DEFAULT};
+    
+    my $delay = $params->{delay};
+    if ( $delay && ( $delay =~ /\d+/ ) && $delay-- > 0 ) {
+        $result = $params->{_RAW};
+        $result =~ s/delay="\d+"/delay="$delay"/;
+        $result =~ s/"/\$quot/g;
+        $result = "\$percntMULTITOPICSAVEINPUT{" . $result . "}\$percnt";
+        return $result
+    }
 
     # For single value we leave leading and trailing space. For multiple value
     # fields it is better for the user that we remove leading and trailing
@@ -360,16 +369,22 @@ sub restMultiTopicSave {
     my $topicsavecounter = 0;         
 
     foreach my $topickey ( keys %parameters ) {
+
+        my $saveThisTopic = 0;  # if 1 access is checked and granted
+        
+        my ( $web, $topic ) =
+          Foswiki::Func::normalizeWebTopicName( '', $topickey );
+
+        my ( $meta, $text ) = Foswiki::Func::readTopic( $web, $topic );
+
         foreach my $fieldName ( keys %{$parameters{$topickey}} ) {
             my $value = $parameters{$topickey}{$fieldName};
-            my ( $web, $topic ) =
-              Foswiki::Func::normalizeWebTopicName( '', $topickey );
-            
-            my ( $meta, $text ) = Foswiki::Func::readTopic( $web, $topic );
             my $oldValue = $meta->get( 'FIELD', $fieldName )->{'value'};
             
             if ( $oldValue ne $value ) {
-                unless (
+                # OK we want to save to the topic. If we already decided we can
+                # save we do not need to check again
+                unless ( $saveThisTopic ||
                     Foswiki::Func::checkAccessPermission(
                         'CHANGE', Foswiki::Func::getWikiName(),
                         undef, $topic, $web
@@ -377,13 +392,17 @@ sub restMultiTopicSave {
                 )
                 {
                     $message .= "Topic $web.$topic was not saved due to lack of access rights\n\n";
-                    next;
+                    last;
                 }
                 
                 $meta->putKeyed( 'FIELD', { name => $fieldName, value => $value } );
-                Foswiki::Func::saveTopic($web, $topic, $meta, $text);
-                $topicsavecounter++;
+                $saveThisTopic = 1;
             }
+        }
+        
+        if ( $saveThisTopic ) {
+            Foswiki::Func::saveTopic($web, $topic, $meta, $text);
+            $topicsavecounter++
         }
     }
     
