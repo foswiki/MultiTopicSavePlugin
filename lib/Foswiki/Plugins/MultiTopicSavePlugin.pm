@@ -223,7 +223,7 @@ sub _MULTITOPICSAVEINPUT {
 
         # We need a dummy hidden field to be able to send
         # none of the checkboxes selected from the browser
-        $result .= "<input type='hidden' name='multitopicsavefield{$targettopic}{$field}' value=''>"
+        $result .= "<input type='hidden' name='multitopicsavefield{$targettopic}{$field}' value='' />"
           if ($type eq 'checkbox');
     }
     elsif ( $type eq 'select' ) {
@@ -253,7 +253,7 @@ sub _MULTITOPICSAVEINPUT {
 
         # We need a dummy hidden field to be able to send
         # none of the checkboxes selected from the browser
-        $result .= "<input type='hidden' name='multitopicsavefield{$targettopic}{$field}' value=''>";
+        $result .= "<input type='hidden' name='multitopicsavefield{$targettopic}{$field}' value='' />";
     }
     elsif ( $type eq 'hidden' ) {
         $result = "<input type='hidden' ";
