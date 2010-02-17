@@ -29,7 +29,7 @@ use Foswiki::Plugins ();    # For the API version
 our $VERSION = '$Rev: 5771 $';
 
 # $RELEASE is used in the "Find More Extensions" automation in configure.
-our $RELEASE = '1.2';
+our $RELEASE = '1.3';
 
 # Short description of this plugin
 # One line description, is shown in the %SYSTEMWEB%.TextFormattingRules topic:
@@ -177,6 +177,12 @@ sub _MULTITOPICSAVEINPUT {
     my $value = defined $params->{value} ? $params->{value} : '';
     my @values = map { s/^\s*(.*?)\s*$/$1/; $_; } split( /\s*,\s*/, $value ); 
 
+    # If edit mode is defined and set to off - just return the value
+    my $editmode = defined $params->{editmode} ?  $params->{editmode} : 'on';
+    unless ( Foswiki::Func::isTrue( $editmode ) ) {
+    	return $value;
+    }
+
     # We assume all leading and trailing spaces are unwanted.
     my @options = ();  
     if ( defined $params->{options} ) {
@@ -212,7 +218,7 @@ sub _MULTITOPICSAVEINPUT {
             if ( $type eq 'radio' && $option eq $value ) {
                 $result .= "checked='checked' ";
             }
-            if ( $type eq 'checkbox' && grep (/$option/, @values ) ) {
+            if ( $type eq 'checkbox' && grep (/^$option$/, @values ) ) {
                 $result .= "checked='checked' ";
             }
             $result .= "/> $option </td>";
@@ -245,7 +251,7 @@ sub _MULTITOPICSAVEINPUT {
         foreach my $option ( @options ) {
             $result .= "<option class='foswikiOption' ";
             
-            if ( grep (/$option/, @values ) ) {
+            if ( grep (/^$option$/, @values ) ) {
                 $result .= "selected='selected' ";
             }
             
