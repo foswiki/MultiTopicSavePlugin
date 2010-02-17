@@ -29,7 +29,7 @@ use Foswiki::Plugins ();    # For the API version
 our $VERSION = '$Rev: 5771 $';
 
 # $RELEASE is used in the "Find More Extensions" automation in configure.
-our $RELEASE = '1.0';
+our $RELEASE = '1.1';
 
 # Short description of this plugin
 # One line description, is shown in the %SYSTEMWEB%.TextFormattingRules topic:
@@ -254,6 +254,11 @@ sub _MULTITOPICSAVEINPUT {
         # We need a dummy hidden field to be able to send
         # none of the checkboxes selected from the browser
         $result .= "<input type='hidden' name='multitopicsavefield{$targettopic}{$field}' value=''>";
+    }
+    elsif ( $type eq 'hidden' ) {
+        $result = "<input type='hidden' ";
+        $result .= "name='multitopicsavefield{$targettopic}{$field}' ";
+        $result .= "value='" . $value . "' />";
     }
     # else if the type is unknown we return nothing
 
