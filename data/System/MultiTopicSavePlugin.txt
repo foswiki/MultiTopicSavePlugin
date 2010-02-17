@@ -30,6 +30,8 @@ In the following example the plugin is used to
 
 %MULTITOPICSAVESUBMIT{"Submit all changes"}%
 
+%MULTITOPICSAVEMESSAGE%
+
 </form>
 </verbatim>
 
