@@ -29,7 +29,7 @@ use Foswiki::Plugins ();    # For the API version
 our $VERSION = '$Rev: 5771 $';
 
 # $RELEASE is used in the "Find More Extensions" automation in configure.
-our $RELEASE = '1.1';
+our $RELEASE = '1.2';
 
 # Short description of this plugin
 # One line description, is shown in the %SYSTEMWEB%.TextFormattingRules topic:
@@ -96,6 +96,9 @@ sub initPlugin {
                                      
     Foswiki::Func::registerTagHandler( 'MULTITOPICSAVEINPUT',
                                        \&_MULTITOPICSAVEINPUT
+                                     );
+    Foswiki::Func::registerTagHandler( 'MULTITOPICSAVEMESSAGE',
+                                       \&_MULTITOPICSAVEMESSAGE
                                      );
 
     # Allow a sub to be called from the REST interface
@@ -265,6 +268,30 @@ sub _MULTITOPICSAVEINPUT {
     return $result;
 }
 
+
+# The function used to handle the %MULTITOPICSAVEMESSAGE% macro
+sub _MULTITOPICSAVEMESSAGE {
+    my($session, $params, $theTopic, $theWeb) = @_;
+    # $session  - a reference to the Foswiki session object (if you don't know
+    #             what this is, just ignore it)
+    # $params=  - a reference to a Foswiki::Attrs object containing
+    #             parameters.
+    #             This can be used as a simple hash that maps parameter names
+    #             to values, with _DEFAULT being the name for the default
+    #             (unnamed) parameter.
+    # $theTopic - name of the topic in the query
+    # $theWeb   - name of the web in the query
+    # Return: the result of processing the macro. This will replace the
+    # macro call in the final text.
+
+    # For example, %EXAMPLETAG{'hamburger' sideorder="onions"}%
+    # $params->{_DEFAULT} will be 'hamburger'
+    # $params->{sideorder} will be 'onions'
+      
+    return "%URLPARAM{\"MULTITOPICSAVEMESSAGE\"}%";
+}
+
+
 =begin TML
 
 ---++ restMultiTopicSave($session) -> $text
@@ -322,10 +349,13 @@ sub restMultiTopicSave {
 
     # Now we traverse each topic and save all the parameters for
     # each topic if they have changed.
+
+    my $message = '';
+    my $topicsavecounter = 0;         
+
     foreach my $topickey ( keys %parameters ) {
         foreach my $fieldName ( keys %{$parameters{$topickey}} ) {
             my $value = $parameters{$topickey}{$fieldName};
-           
             my ( $web, $topic ) =
               Foswiki::Func::normalizeWebTopicName( '', $topickey );
             
@@ -340,17 +370,22 @@ sub restMultiTopicSave {
                     )
                 )
                 {
+                    $message .= "Topic $web.$topic was not saved due to lack of access rights\n\n";
                     next;
                 }
                 
                 $meta->putKeyed( 'FIELD', { name => $fieldName, value => $value } );
                 Foswiki::Func::saveTopic($web, $topic, $meta, $text);
+                $topicsavecounter++;
             }
         }
     }
+    
+    $message .= "Number of topics changed: $topicsavecounter";
    
+    $query->param(-name => 'MULTITOPICSAVEMESSAGE', -value => "$message");
     my $url = Foswiki::Func::getScriptUrl( $redirectweb, $redirecttopic, 'view' );
-    Foswiki::Func::redirectCgiQuery( undef, $url );
+    Foswiki::Func::redirectCgiQuery( undef, $url, 1 );
     return undef;
 }
 
