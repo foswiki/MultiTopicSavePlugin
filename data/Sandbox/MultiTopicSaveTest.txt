@@ -1,0 +1,28 @@
+%META:TOPICINFO{author="ProjectContributor" date="1266772841" format="1.1" version="1.1"}%
+%META:TOPICPARENT{name="WebHome"}%
+---++ Multi Topic Save Test
+
+<!--
+   * Set TYPES = %SEARCH{"\| *Type *\|" topic="MultiTopicSaveTestForm" regex="on" nonoise="on" multiple="on" format="$pattern(.*?\| *Type *\|[^\|]*\|[^\|]*\| *([^\|]*?) *\|.*)"}%
+   * Set ANIMALS = %SEARCH{"\| *Animal *\|" topic="MultiTopicSaveTestForm" regex="on" nonoise="on" multiple="on" format="$pattern(.*?\| *Animal *\|[^\|]*\|[^\|]*\| *([^\|]*?) *\|.*)"}%
+   * Set FRIENDS = %SEARCH{"\| *Friend *\|" topic="MultiTopicSaveTestForm" regex="on" nonoise="on" multiple="on" format="$pattern(.*?\| *Friend *\|[^\|]*\|[^\|]*\| *([^\|]*?) *\|.*)"}%
+-->
+
+<form action='%SCRIPTURL{"rest"}%/MultiTopicSavePlugin/multitopicsave' method="post">
+
+%IF{"$ multiedit = 'on'" then="[[%TOPIC%][Cancel editing and release locks]] , %MULTITOPICSAVESUBMIT{"Save all changes"}%" else="[[%TOPICURL%?multiedit=on][Edit and lock the topics]]"}%
+
+%TABLE{columnwidths="180,200,140,100,100"}%
+|* Topic/Option * | *Description* | *Type* | *Animal* | *Friend* |
+%SEARCH{"MultiTopicSaveTestTarget" scope="topic" nonoise="on"
+format="| $topic <br /> \
+%MULTITOPICSAVEINPUT{"Option" type="text" size="20" web="$web" topic="$topic" value="$value" delay="1" editmode="%URLPARAM{"multiedit" default="off"}%" lockmode="on"}% | \
+%MULTITOPICSAVEINPUT{"Description" type="textarea" web="$web" topic="$topic" size="25x6" value="$value" delay="1" editmode="%URLPARAM{"multiedit" default="off"}%" lockmode="on"}% | \
+%MULTITOPICSAVEINPUT{"Type" type="radio" size="1" delay="1" web="$web" topic="$topic" value="$value" options="%TYPES%" editmode="%URLPARAM{"multiedit" default="off"}%" lockmode="on"}% | \
+%MULTITOPICSAVEINPUT{"Animal" type="checkbox" size="1" delay="1" web="$web" topic="$topic" value="$value" options="%ANIMALS%" editmode="%URLPARAM{"multiedit" default="off"}%" lockmode="on"}% | \
+%MULTITOPICSAVEINPUT{"Friend" type="select" size="0" multiple="on" delay="1" web="$web" topic="$topic" value="$value" options="%FRIENDS%" editmode="%URLPARAM{"multiedit" default="off"}%" lockmode="on"}% |"
+}%
+
+</form>
+
+%MULTITOPICSAVEMESSAGE%

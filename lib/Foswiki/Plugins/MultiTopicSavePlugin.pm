@@ -29,7 +29,7 @@ use Foswiki::Plugins ();    # For the API version
 our $VERSION = '$Rev: 5771 $';
 
 # $RELEASE is used in the "Find More Extensions" automation in configure.
-our $RELEASE = '1.3';
+our $RELEASE = '1.4';
 
 # Short description of this plugin
 # One line description, is shown in the %SYSTEMWEB%.TextFormattingRules topic:
@@ -114,6 +114,105 @@ sub initPlugin {
     return 1;
 }
 
+=begin TML
+
+---++ _topicLock($web, $topic, $mode) -> ($success, $message)
+
+This is the which will lock or unlock a topic
+
+The parameter is:
+   * =$session= - The Foswiki object associated to this session.
+   * =$mode= - "locked" or "released", default "released"
+   
+The sub returns
+   * =$success= - 0 = failed, 1 = success
+   * =$message= - a message how it went.
+   
+Note: Message from this sub is not yet used in the plugin. Nice to have
+
+=cut
+
+sub _topicLock {
+    my ($web, $topic, $mode) = @_;
+      
+    $mode ||= "released";
+    
+    my $currentWikiName = Foswiki::Func::getWikiName( );
+
+    my $message = '';
+    
+    unless ( Foswiki::Func::topicExists( $web, $topic ) ) {
+        $message .= "Topic $web.$topic does not exist\n\n";
+        return ( 0, $message );
+    }
+
+    # Is it locked?
+    my ($oopsUrl, $loginName, $unlockTime) =
+      Foswiki::Func::checkTopicEditLock( $web, $topic, undef );
+
+    my $lockedWikiName = Foswiki::Func::getWikiName( $loginName );
+
+    # We cannot lock or unlock if locked by someone else
+    if ( $unlockTime && ( $lockedWikiName ne $currentWikiName ) ) {
+        $message .= "Topic $web.$topic was not $mode. " .
+                    "It is being edited by !$lockedWikiName";
+    
+        return ( 0, $message );
+    }
+        
+    # We cannot lock or unlock unless we have access rights
+    unless ( Foswiki::Func::checkAccessPermission( 'CHANGE', $currentWikiName,
+                                                  undef, $topic, $web ) ) {
+        
+        $message .= "Topic $web.$topic was not $mode " .
+                    "due to lack of access rights\n\n";
+
+        return ( 0, $message );
+    }
+    
+    # Success, we can lock or release
+    Foswiki::Func::setTopicEditLock( $web, $topic, ($mode eq 'locked') );
+    
+    $message .= "Topic $web.$topic was $mode.";
+   
+    return ( 1, $message );
+}
+
+
+=begin TML
+
+---++ _fetchFormFieldValue($field, $web, $topic) -> $value
+
+Fetch the raw unrendered content of a formfield
+
+The parameter is:
+   * =$field= - Field name to fetch.
+   * =$web= - Web name of topic
+   * =$topic= - Topic name  
+   
+The sub returns
+   * String - The raw content in the field
+   * Returns '' if topic does not exist or no access rights
+   
+=cut
+
+sub _fetchFormFieldValue {
+    my ($field, $web, $topic) = @_;
+
+    my $currentWikiName = Foswiki::Func::getWikiName( );
+    
+    unless ( Foswiki::Func::checkAccessPermission( 'VIEW', $currentWikiName,
+                                                  undef, $topic, $web ) ) {
+        return '';
+    }
+    
+    my ( $meta, undef ) = Foswiki::Func::readTopic( $web, $topic );
+    my $value = $meta->get( 'FIELD', $field );
+
+    return ( $value->{'value'} || '' );
+}
+
+
 # The function used to handle the %MULTITOPICSAVESUBMIT{...}% macro
 sub _MULTITOPICSAVESUBMIT {
     my($session, $params, $theTopic, $theWeb) = @_;
@@ -133,9 +232,12 @@ sub _MULTITOPICSAVESUBMIT {
     # $params->{_DEFAULT} will be 'hamburger'
     # $params->{sideorder} will be 'onions'
     
-    my $result = "<input type='hidden' name='redirectweb' value='%WEB%' />" .
-                 "<input type='hidden' name='redirecttopic' value='%TOPIC%' />" .
-                 "<input type='submit' value='";
+    # We cannot use the rest parameter endPoint because we need to return
+    # to the submit with the URLPARAM MULTITOPICSAVEMESSAGE set.
+    
+    my $result = "<input type='hidden' name='redirectweb' value='$theWeb' />" .
+                 "<input type='hidden' name='redirecttopic' value='$theTopic' />" .              
+                 "<input type='submit' class='foswikiButton' value='";
     $result .= $params->{_DEFAULT} || "Submit All Changes";
     $result .= "' />";
     
@@ -164,65 +266,114 @@ sub _MULTITOPICSAVEINPUT {
     
     my $result = '';
     my $type = lc ( $params->{type} ) || 'text';
-    my $size = $params->{size};                     # No default here
-    my $targetweb = $params->{web} || $theWeb;
-    my $targettopic = $params->{topic} || $theTopic;
-    $targettopic = "$targetweb.$targettopic";
+    my $size = $params->{size};                  # No default here
     my $multiple = $params->{multiple} || 0;
     my $field = $params->{_DEFAULT};
-    
+    my $targetWeb = $params->{web} || $theWeb;
+    my $targetTopic = $params->{topic} || $theTopic;
+
+    ( $targetWeb, $targetTopic ) =
+      Foswiki::Func::normalizeWebTopicName( $targetWeb, $targetTopic );
+
+    my $topicFQN = "$targetWeb.$targetTopic";    # Topic fully qualified name
+  
+    # Delay means we escape with $percnt and $quot
+    # We cannot replace inside _RAW because that also replace quotes in values
     my $delay = $params->{delay};
     if ( $delay && ( $delay =~ /\d+/ ) && $delay-- > 0 ) {
-        $result = $params->{_RAW};
-        $result =~ s/delay="\d+"/delay="$delay"/;
-        $result =~ s/"/\$quot/g;
-        $result = "\$percntMULTITOPICSAVEINPUT{" . $result . "}\$percnt";
+        $result = "\$percntMULTITOPICSAVEINPUT{";
+        $result .= "\$quot$field\$quot "; 
+
+        foreach my $key ( keys %$params ) {
+            next if ($key eq '_RAW' || $key eq '_DEFAULT');
+             
+            if ( $key eq 'delay' ) {
+                $result .= "delay=\$quot$delay\$quot ";
+                next;
+            }
+            
+            $result .= "$key=\$quot" . $params->{$key} . "\$quot ";
+        }
+        $result .= "}\$percnt";
         return $result
     }
 
-    # For single value we leave leading and trailing space. For multiple value
-    # fields it is better for the user that we remove leading and trailing
-    # spaces as they are most like unwanted in these cases.
-    my $value = defined $params->{value} ? $params->{value} : '';
-    my @values = map { s/^\s*(.*?)\s*$/$1/; $_; } split( /\s*,\s*/, $value ); 
+    # if value is not defined we set it to the string $value
+    my $value = defined $params->{value} ? $params->{value} : '$value';
+
+    # Substitute the string '$value' by $value. This enables the user to
+    # Prefix and suffix the existing value
+    $value =~
+      s/\$value/_fetchFormFieldValue( $field, $targetWeb, $targetTopic )/ge;
 
     # If edit mode is defined and set to off - just return the value
-    my $editmode = defined $params->{editmode} ?  $params->{editmode} : 'on';
-    unless ( Foswiki::Func::isTrue( $editmode ) ) {
-    	return $value;
+    my $editmode = defined $params->{editmode} ?
+                   Foswiki::Func::isTrue( $params->{editmode} ) : 1;
+
+    my $lockmode = defined $params->{lockmode} ?  
+                   Foswiki::Func::isTrue( $params->{lockmode} ) : 0;
+
+    # encodeview is designed to be used in TML tables and encode the most
+    # destroyers of TML tables, newlines and vertical bars
+    my $encodeview = defined $params->{encodeview} ?
+                   Foswiki::Func::isTrue( $params->{encodeview} ) : 1;
+    if ( !$editmode && $encodeview ) {
+        $value =~ s/\r?\n/<br \/>/gs;
+        my $bar = '&#124;';
+        $value =~ s/\|/$bar/g;
+    }
+    
+    if ( $editmode ) {    
+        # if lockmode is enabled we lock topic when in edit mode and
+        # return the value if the lock failed since we cannot edit
+        if ( $lockmode ) {
+            return $value
+                unless (_topicLock( $targetWeb, $targetTopic, 'locked' ))[0];
+        }
+    }
+    else {
+        # if lockmode is enabled we release topic lease when in non-edit mode       
+        _topicLock( $targetWeb, $targetTopic, 'released' )
+            if $lockmode;
+        return $value;
     }
 
-    # We assume all leading and trailing spaces are unwanted.
+    # We assume leading and trailing spaces around option values are unwanted
     my @options = ();  
     if ( defined $params->{options} ) {
         @options = map { s/^\s*(.*?)\s*$/$1/; $_; } 
                    split( /\s*,\s*/, $params->{options} ); 
     }
 
+    # Render the field for editing depending on field type
     if ( $type eq 'text' ) {
         $result = "<input class='foswikiInputField' type='text' ";
-        $result .= "size='$size' " if defined $size;
-        $result .= "name='multitopicsavefield{$targettopic}{$field}' ";
+        $size = 10 if ( !$size || $size < 1 );
+        $result .= "size='$size' ";
+        $result .= "name='multitopicsavefield{$topicFQN}{$field}' ";
         $result .= "value='" . $value . "' />";
     }
     elsif ( $type eq 'textarea' ) {
         $result = "<textarea class='foswikiTextarea' ";
+        my ($cols, $rows) = ( 40, 5 );
         if ( $size =~ m/(\d+)[xX](\d+)/ ) {
-            my ($cols, $rows) = ( $1, $2 );
-            $result .= "cols='$cols' rows='$rows' ";
-        }
-        $result .= "name='multitopicsavefield{$targettopic}{$field}'>";
+           ($cols, $rows) = ( $1, $2 );
+        } 
+        $result .= "cols='$cols' rows='$rows' ";
+        $result .= "name='multitopicsavefield{$topicFQN}{$field}'>";
         $result .= "$value";
         $result .= "</textarea>"
     }
     elsif ( $type eq 'radio' || $type eq 'checkbox' ) {
+        my @values
+          = map { s/^\s*(.*?)\s*$/$1/; $_; } split( /\s*,\s*/, $value );
         my $initcounter = defined $size ? $size : 1;
         my $counter = $initcounter;
         $result = "<table style='border:none;border-style:none;border-width:0;padding-top:0;'>";
         foreach my $option ( @options ) {
             $result .= "<tr>" if ( $counter == $initcounter );
             $result .= "<td style='border:none;border-style:none;border-width:0;padding-top:0;'><input type='$type' ";
-            $result .= "name='multitopicsavefield{$targettopic}{$field}' ";
+            $result .= "name='multitopicsavefield{$topicFQN}{$field}' ";
             $result .= "value='" . $option . "' ";
             if ( $type eq 'radio' && $option eq $value ) {
                 $result .= "checked='checked' ";
@@ -241,12 +392,15 @@ sub _MULTITOPICSAVEINPUT {
 
         # We need a dummy hidden field to be able to send
         # none of the checkboxes selected from the browser
-        $result .= "<input type='hidden' name='multitopicsavefield{$targettopic}{$field}' value='' />"
+        $result .= "<input type='hidden' name='multitopicsavefield{$topicFQN}{$field}' value='' />"
           if ($type eq 'checkbox');
     }
     elsif ( $type eq 'select' ) {
+        my @values =
+          map { s/^\s*(.*?)\s*$/$1/; $_; } split( /\s*,\s*/, $value );
+        
         $result = "<select "
-                  . "name='multitopicsavefield{$targettopic}{$field}' "
+                  . "name='multitopicsavefield{$topicFQN}{$field}' "
                   . "class='foswikiSelect' ";
                   
         $result .= "multiple='multiple' "
@@ -271,11 +425,11 @@ sub _MULTITOPICSAVEINPUT {
 
         # We need a dummy hidden field to be able to send
         # none of the checkboxes selected from the browser
-        $result .= "<input type='hidden' name='multitopicsavefield{$targettopic}{$field}' value='' />";
+        $result .= "<input type='hidden' name='multitopicsavefield{$topicFQN}{$field}' value='' />";
     }
     elsif ( $type eq 'hidden' ) {
         $result = "<input type='hidden' ";
-        $result .= "name='multitopicsavefield{$targettopic}{$field}' ";
+        $result .= "name='multitopicsavefield{$topicFQN}{$field}' ";
         $result .= "value='" . $value . "' />";
     }
     # else if the type is unknown we return nothing
@@ -340,6 +494,7 @@ sub restMultiTopicSave {
     my $sessionweb = $session->{webName};
     my $sessiontopic = $session->{topicName};
     my %parameters = ();
+    my $currentWikiName = Foswiki::Func::getWikiName( );
 
     ( $redirectweb, $redirecttopic ) =
       Foswiki::Func::normalizeWebTopicName( $redirectweb, $redirecttopic );
@@ -379,20 +534,41 @@ sub restMultiTopicSave {
 
         foreach my $fieldName ( keys %{$parameters{$topickey}} ) {
             my $value = $parameters{$topickey}{$fieldName};
-            my $oldValue = $meta->get( 'FIELD', $fieldName )->{'value'};
+            my $fieldhashref = $meta->get( 'FIELD', $fieldName );
             
+            my $oldValue = $fieldhashref ?
+                           $meta->get( 'FIELD', $fieldName )->{'value'} :
+                           '';
+            
+            # Note: We can actually find and store fields that are not in the
+            # form definition topic. Let us call this a feature. Could be
+            # useful for finding old formfields in topics after form is altered
             if ( $oldValue ne $value ) {
                 # OK we want to save to the topic. If we already decided we can
                 # save we do not need to check again
                 unless ( $saveThisTopic ||
                     Foswiki::Func::checkAccessPermission(
-                        'CHANGE', Foswiki::Func::getWikiName(),
+                        'CHANGE', $currentWikiName,
                         undef, $topic, $web
                     )
                 )
                 {
-                    $message .= "Topic $web.$topic was not saved due to lack of access rights\n\n";
+                    $message .=
+                      "Topic $web.$topic was not saved due to lack " .
+                      "of access rights\n\n";
                     last;
+                }
+                unless ( $saveThisTopic ) {
+                    my ($oopsUrl, $loginName, $unlockTime) =
+                      Foswiki::Func::checkTopicEditLock( $web, $topic, undef );
+                    my $lockedWikiName = Foswiki::Func::getWikiName( $loginName );
+                    if ( $unlockTime &&
+                         ( $lockedWikiName ne $currentWikiName ) ) {
+                        $message .=
+                          "Topic $web.$topic was not saved because it is" .
+                          "currently being edited by !$lockedWikiName\n\n";
+                        last;
+                    }
                 }
                 
                 $meta->putKeyed( 'FIELD', { name => $fieldName, value => $value } );
@@ -402,6 +578,10 @@ sub restMultiTopicSave {
         
         if ( $saveThisTopic ) {
             Foswiki::Func::saveTopic($web, $topic, $meta, $text);
+            
+            #We need to avoid leaving many topics in locked state.
+            Foswiki::Func::setTopicEditLock( $web, $topic, 0 );
+
             $topicsavecounter++
         }
     }
@@ -415,6 +595,7 @@ sub restMultiTopicSave {
 }
 
 1;
+
 __END__
 # This copyright information applies to the MultiTopicSavePlugin:
 #

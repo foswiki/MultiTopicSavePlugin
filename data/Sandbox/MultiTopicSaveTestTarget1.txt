@@ -1,0 +1,9 @@
+%META:TOPICINFO{author="ProjectContributor" date="1266772265" format="1.1" version="1.1"}%
+Text content
+
+%META:FORM{name="MultiTopicSaveTestForm"}%
+%META:FIELD{name="Option" attributes="" title="Option" value="Hello World"}%
+%META:FIELD{name="Type" attributes="" title="Type" value="String"}%
+%META:FIELD{name="Animal" attributes="" title="Animal" value="cat"}%
+%META:FIELD{name="Friend" attributes="" title="Friend" value="cat, elephant"}%
+%META:FIELD{name="Description" attributes="" title="Description" value="This description is short%0d%0a%0d%0aMultiTopicSaveTestTarget2 is also good%0d%0a%0d%0aI can handle %22quotes strings%22 and vertical vars | like this.%0d%0a%0d%0a   * Some bullet%0d%0a   * Another bullet%0d%0a%0d%0aBullets are normally not rendered"}%

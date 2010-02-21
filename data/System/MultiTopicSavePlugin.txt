@@ -19,22 +19,38 @@ The plugin will ignore topics that the user does not have write access to.
 
 In the following example the plugin is used to
 
-   * Make a formatted search which finds a number of topics
-   * Display selected fields in editable form. The field types are text, textarea, radio, checkbox, and select (all the formats supported by the plugin)
-   * Note that with field types where we want to know the content a field from each found topic before the MULTITOPICSAVEINPUT is expanded, we need to delay the expansion of MULTITOPICSAVEINPUT till after the SEARCH is complete and has produced its result. A special parameter =delay= allows you to do that without using ugly $percnt and $quot everywhere.
+   * Used in an HTML form that submits all fields to the rest script =multitopicsave= of the plugin
+   * Make a formatted search which finds a selection of topics and presents each topic in a row in a table
+   * The macros MULTITOPICSAVEINPUT displays the fields in editable form with =editmode="on"=. The field types are text, textarea, radio, checkbox, and select (all the formats supported by the plugin). The macro MULTITOPICSAVEINPUT can also just show the current value with =editmode="off"=
+   * Delay the expansion of MULTITOPICSAVEINPUT till after the SEARCH is complete and has produced its result. A special parameter =delay= allows you to do that without using ugly $percnt and $quot everywhere
+   * The macro MULTITOPICSAVESUBMIT creates a submission button and the extra hidden form field that tells the plugin where to return after the rest script.
+   * The macro MULTITOPICSAVEMESSAGE shows the result of which topics were saved when we return to the submission page after saving via the rest script.
 
 <verbatim>
+<!--
+   * Set TYPES = %SEARCH{"\| *Type *\|" topic="MultiTopicSaveTestForm" regex="on" nonoise="on" multiple="on" format="$pattern(.*?\| *Type *\|[^\|]*\|[^\|]*\| *([^\|]*?) *\|.*)"}%
+   * Set ANIMALS = %SEARCH{"\| *Animal *\|" topic="MultiTopicSaveTestForm" regex="on" nonoise="on" multiple="on" format="$pattern(.*?\| *Animal *\|[^\|]*\|[^\|]*\| *([^\|]*?) *\|.*)"}%
+   * Set FRIENDS = %SEARCH{"\| *Friend *\|" topic="MultiTopicSaveTestForm" regex="on" nonoise="on" multiple="on" format="$pattern(.*?\| *Friend *\|[^\|]*\|[^\|]*\| *([^\|]*?) *\|.*)"}%
+-->
+
 <form action='%SCRIPTURL{"rest"}%/MultiTopicSavePlugin/multitopicsave' method="post">
 
+%IF{"$ multiedit = 'on'" then="[[%TOPIC%][Cancel editing and release locks]] , %MULTITOPICSAVESUBMIT{"Save all changes"}%" else="[[%TOPICURL%?multiedit=on][Edit and lock the topics]]"}%
+
+%TABLE{columnwidths="180,200,140,100,100"}%
+|* Topic/Option * | *Description* | *Type* | *Animal* | *Friend* |
 %SEARCH{"MultiTopicSaveTestTarget" scope="topic" nonoise="on"
-    format="| $topic | %MULTITOPICSAVEINPUT{"Option" type="text" size="20" web="$web" topic="$topic" value="$formfield(Option)"}% | %MULTITOPICSAVEINPUT{"Description" type="textarea" web="$web" topic="$topic" size="20x4" value="$percntFORMFIELD{$quotDescription$quot web=$quot$web$quot topic=$quot$topic$quot}$percnt" }% | %MULTITOPICSAVEINPUT{"Type" type="radio" size="2" delay="1" web="$web" topic="$topic" value="$formfield(Type)" options="Boolean, Integer, String, Discrete Strings" }% | %MULTITOPICSAVEINPUT{"Animal" type="checkbox" size="2" delay="1" web="$web" topic="$topic" value="$formfield(Animal)" options="ape, cat, elephant, mouse" }% | %MULTITOPICSAVEINPUT{"Friend" type="select" size="0" multiple="on" delay="1" web="$web" topic="$topic" value="$formfield(Friend)" options="ape, cat, elephant, mouse" }% |"
+format="| $topic <br /> \
+%MULTITOPICSAVEINPUT{"Option" type="text" size="20" web="$web" topic="$topic" value="$value" delay="1" editmode="%URLPARAM{"multiedit" default="off"}%" lockmode="on"}% | \
+%MULTITOPICSAVEINPUT{"Description" type="textarea" web="$web" topic="$topic" size="25x6" value="$value" delay="1" editmode="%URLPARAM{"multiedit" default="off"}%" lockmode="on"}% | \
+%MULTITOPICSAVEINPUT{"Type" type="radio" size="1" delay="1" web="$web" topic="$topic" value="$value" options="%TYPES%" editmode="%URLPARAM{"multiedit" default="off"}%" lockmode="on"}% | \
+%MULTITOPICSAVEINPUT{"Animal" type="checkbox" size="1" delay="1" web="$web" topic="$topic" value="$value" options="%ANIMALS%" editmode="%URLPARAM{"multiedit" default="off"}%" lockmode="on"}% | \
+%MULTITOPICSAVEINPUT{"Friend" type="select" size="0" multiple="on" delay="1" web="$web" topic="$topic" value="$value" options="%FRIENDS%" editmode="%URLPARAM{"multiedit" default="off"}%" lockmode="on"}% |"
 }%
 
-%MULTITOPICSAVESUBMIT{"Submit all changes"}%
+</form>
 
 %MULTITOPICSAVEMESSAGE%
-
-</form>
 </verbatim>
 
 
@@ -54,7 +70,7 @@ Example
 <input type='text' size='20' name='multitopicsavefield{Myweb.MultiTopicSaveTestTarget2}{Name}' value='$formfield(Name}' />
 </verbatim>
 
-To ease this task you can use the MULTITOPICSAVEINPUT macro to generate the correct fields. At of this moment only text and textarea fields are supported by a macro. But other types can be used by using HTML.
+To ease this task you will normally use the MULTITOPICSAVEINPUT macro to generate the correct fields. Most standard HTML formfield types are supported. You have pretty good control of the fields using the macro but if you need a special way to present the fields you can also use plain HTML. The important detail is that the name of the field must be =name='multitopicsavefield{Webname.Topicname}{Fieldname}'=
 
 In addition the form must submit two hidden fields redirectweb and redirecttopic that specify the topic to which you are redirected when you submit. 
 
@@ -63,65 +79,84 @@ In addition the form must submit two hidden fields redirectweb and redirecttopic
 <input type='hidden' name='redirecttopic' value='MultiTopicSaveTest' />
 </verbatim>
 
-To ease this task you can use the MULTITOPICSAVESUBMIT which creates a submit button and per default redirects the user back to the original topic from which the form was submitted.
+To ease this task you will normally use the MULTITOPICSAVESUBMIT which creates a submit button and per default redirects the user back to the original topic from which the form was submitted.
 
-   * %<nop>MULTITOPICSAVESUBMIT{"Submit button text}%
-      * This Macro adds a submit button with the text defined. It additionally adds the hidden fields that the plugin needs to send to return to the current topic after submission.
+---+++ MULTITOPICSAVESUBMIT -- Create submit button
+
+   * Syntax =%<nop>MULTITOPICSAVESUBMIT{"Submit button text}%=
+   * Adds a submit button with the text defined. It additionally adds the hidden fields that the plugin needs to send to return to the current topic after submission.
       
-   * %<nop>MULTITOPICSAVEINPUT{"Field name" type="field type" multiple="on|off" size="field size" web="webname" topic="topicname" value="desplayed value in field" options="list of options"}%
-      * Field name - the name of the field in the data form. If the field name has spaces you need to ommit the spaces
-      * type = type of input field. Valid types are text, textarea, radio, checkbox, select, and hidden
-      * multiple = allow multiple values for fields of the select type. For other types of fields this parameter is ignored
-      * size = the size of the input text field (single number) or textarea (width x height).
-         * Example for textarea: '80x4' for 80 columns wide by 4 lines tall.
-         * For checkbox and radio fields the size defines the number of buttons/checkboxes shown before in each displayed row of buttons/checkboxes. To show all the buttons in one row select a very large number. To show them all below each other set size to 1. Default is 1.
-         * For select the size defines the number of values displayed in the input window. If no size is given all values are shown for multiple fields and a simple pulldown is shown for non-multiple.
-         * For hidden fields size is ignored
-      * web = web of the target topic. In formatted searches you can put $web here
-      * topic = name of the target topic. In formatted searches you can put $topic here
-      * value = the value that is put in the field by default
-      * options = the values to choose between for types radio, select etc. This value is ignored for text, textarea, and hidden. Options are separated by commas, example: options="dog, cat, horse"
-      * editmode = enable the field in edit mode. If this is set to "off" the value given in the value field is shown. If editmode is "on" the field is shown in edit mode. By default the editmode it "on". This enables selectively to enable editing by adding something like editmode="%<nop>URLPARAM{"multiedit" default="off"}% to MULTITOPICSAVEINPUT and control selectively if fields are editable or not. This can simply be used by appending ?multiedit=on to the URL.
-      * delay = number of times the MULTITOPICSAVEINPUT will delay its own expansion by changing the first and last %-sign to $percnt and all double quotes (") to $quot. This is used when you use MULTITOPICSAVEINPUT inside the format parameter of a SEARCH macro and you do not want to expand MULTITOPICSAVEINPUT until the SEARCH is completed. You need to do this when the field types are radio, checkbox, or select. Set the delay to 1 if it is a single level SEARCH. If you have nested SEARCHes you can set delay to the level of nesting.
-      * Note that the input fields generated by MULTITOPICSAVEINPUT have only single quotes (') allowing the use in the format parameter of SEARCH.
+---+++ MULTITOPICSAVEINPUT -- Create input field
+
+   * Syntax =%<nop>MULTITOPICSAVEINPUT{"Field name" type="field type" multiple="on|off" size="field size" web="webname" topic="topicname" value="desplayed value in field" options="list of options"}%=
+   * Shows the content of a topic formfield as an editable HTML formfield.
+   * Shows the content of a topic formfield as plain text when not editing. By default the newlines and vertical bars are encoded when not editing to allow display inside TML tables.
+   * Note that the input fields generated by MULTITOPICSAVEINPUT have only single quotes (') allowing the use in the format parameter of SEARCH.
+   | *Parameter* | *Description* | *Default* |
+   | ="fieldname"= | The name of the field in the data form. If the field name has spaces you need to ommit the spaces | |
+   | =type="text"= | type of input field. Valid types are =text=, =textarea=, =radio=, =checkbox=, =select=, and =hidden= | =text= |
+   | =multiple="on" | Allow multiple values for fields of the select type. For other types of fields this parameter is ignored | =off= |
+   | =size="1"= | The size of the input field <br />%BB% For text type field the size is the field width in characters. Default is 10.  <br />%BB% For textarea type field the size if specified as columns x rows (width x height).Default for textarea is '80x4' for 80 columns wide by 4 lines tall. <br/>%BB% For checkbox and radio type fields the size defines the number of buttons/checkboxes shown before in each displayed row of buttons/checkboxes. To show all the buttons in one row select a very large number. To show them all below each other set size to 1. Default is 1. <br />%BB% For select type field the size defines the number of values displayed in the input window. If no size is given all values are shown for multiple fields and a simple pulldown is shown for non-multiple. <br />%BB% For hidden type fields size is ignored | Depends on type |
+   | =web="..."=  | Web of the target topic. In formatted searches you can put $web here | Current web |
+   | =topic="..."= | Name of the target topic. In formatted searches you can put $topic here | Current topic |
+   | =value="$value"= | The value that is put in the field by default. You can use the token =$value= and let the plugin fetch the current value from the formfield. This also enables you to prefix or postfix text or values before and after the current value. If value is not specified the default will be value='$value' | =$value= |
+   | =options="..,..,.."= | The values to choose between for types radio, select etc. This value is ignored for text, textarea, and hidden. Options are separated by commas, example: options="dog, cat, horse". Note that for performance reasons the options are not fetched from the form defining topic. You must provide the list. | none |
+   | =editmode="off"= | Enable the field in edit mode. If this is set to "off" the value given in the value field is shown. If editmode is "on" the field is shown in edit mode. By default the editmode it "on". This enables selectively to enable editing by adding something like editmode="%<nop>URLPARAM{"multiedit" default="off"}% to MULTITOPICSAVEINPUT and control selectively if fields are editable or not. This can simply be used by appending ?multiedit=on to the URL. | =on= |
+   | =encodeview="off"= | By default the value returned by MULTITOPICSAVEINPUT with editmode="off" is encoded to enable display of textareas inside TML tables. The encoding changes newlines to &lt;br /&gt; and &#124; to &amp;#124;. This encoding is not always desired and can be turned off by setting encodeview="off". This feature is mostly relevant with text and textarea type fields | =on= | 
+   | =lockmode="on"= | Lock topics when editmode="on" and unlock them when editmode="off". If lockmode is enabled and a topic is being edited by someone else or you have no edit access rights, the field will be rendered as if editmode is off. Ie. the value is shown in plain text. | =off= |
+   | =delay="1"=  | Number of times the MULTITOPICSAVEINPUT will delay its own expansion by changing the first and last %-sign to $percnt and all double quotes (") to $quot. This is used when you use MULTITOPICSAVEINPUT inside the format parameter of a SEARCH macro and you do not want to expand MULTITOPICSAVEINPUT until the SEARCH is completed. Set the delay to 1 if it is a single level SEARCH. If you have nested SEARCHes you can set delay to the level of nesting. | =0= |
       
-   * %<nop>MULTITOPICSAVEMESSAGE%
-      * This macro shows messages about topic that were not saved due to lack access rights and it shows the total number of saved topics. This macro is only expanded when you return to the page after submitting the content.
-      * The messages are sent via a url parameter called MULTITOPICSAVEMESSAGE. This macro simply expands to %<nop>URLPARAM{"MULTITOPICSAVEMESSAGE"}%
-      * The idea of this macro is to place it somewhere on the topic so the user can see how the saving went. Typically at the top or at the bottom of the page near the submit button.
+---+++ MULTITOPICSAVEMESSAGE -- Display message after saving
+   * Syntax: %<nop>MULTITOPICSAVEMESSAGE%
+   * This macro shows messages about topics that were not saved due to lack access rights and it shows the total number of saved topics. This macro is only expanded when you return to the page after submitting the content.
+   * The messages are sent via a url parameter called MULTITOPICSAVEMESSAGE. This macro simply expands to %<nop>URLPARAM{"MULTITOPICSAVEMESSAGE"}%
+   * The idea of this macro is to place it somewhere on the topic so the user can see how the saving went. Typically at the top or at the bottom of the page near the submit button.
       
 ---++ Examples of input field types with MULTITOPICSAVEINPUT
 
 ---+++ text
 
-=%<nop>MULTITOPICSAVEINPUT{"Field name" type="text" size="field size" web="webname" topic="topicname" value="desplayed value in field"}%=
+=%<nop>MULTITOPICSAVEINPUT{"Field name" type="text" size="field size" web="webname" topic="topicname" value="$value" delay="number" editmode="on|off" lockmode="on|off" encodeview="on|off"}%=
 
-This is the most simple type. This creates a plain text field which has a width given by the size parameter. In a formatted search you can use this type without delaying the expansion of the macro with $percnt and $quot. Ie. it is not an advantage to use the =delay= parameter for text type fields. 
+This is the most simple type. This creates a plain text field which has a width given by the size parameter. When using this type of field in a format of a SEARCH you may choose not to use the value="$value". If the text never contains quotes (") you can with get a small performance gain by using value="$formfield(fieldname)" and delay="0" because this means MULTITOPICSAVEINPUT only gets expanded once per page view. But often people will use quotes in the text so be careful with this approach. It is safer to use value="$value" and delay="1".
+
+If your text fields contain vertical bars and you use MULTITOPICSAVEINPUT in a TML table, the table will break in editmode, because the encoding of '|' and newlines happens only with editmode="off". You can instead use a textarea type field with height 1 as this will handle the vertical bars well.
 
 Example of use in formatted search format
 
 <verbatim>
-%MULTITOPICSAVEINPUT{"Option" type="text" size="20" web="$web" topic="$topic" value="$formfield(Option)"}%
+%MULTITOPICSAVEINPUT{"Option" type="text" size="20" web="$web" topic="$topic" value="$value" delay="1" editmode="on" lockmode="off"}%
+</verbatim>
+
+Or taking advantage of the default values for the parameters we can simply use
+
+<verbatim>
+%MULTITOPICSAVEINPUT{"Option" size="20" web="$web" topic="$topic" delay="1"}%
 </verbatim>
 
 ---+++ textarea
 
-=%<nop>MULTITOPICSAVEINPUT{"Field name" type="textarea" size="COLxROWS" web="webname" topic="topicname" value="desplayed value in field"}%=
+=%<nop>MULTITOPICSAVEINPUT{"Field name" type="textarea" size="COLxROWS" web="webname" topic="topicname" value="$value" delay="number" editmode="on|off" lockmode="on|off" encodeview="on|off"}%=
 
 The textarea produces a text entry field with width and number of displayed lines as defined by the size parameter. Size is given as "20x4" for 4 lines of 20 characters each. You can input more than the 4 lines. The browser will add a scroll bar to the field.
 
-Note that for textareas we cannot use the SEARCH feature =$formfield= because it encodes newlines as &lt;br /&gt; (to avoid breaking tables) which is not desired when you want to show the current value in a text box. Instead we can use the standard macro %<nop>FORMFIELD% which does not perform any translation. Linebreaks will not break TML defined tables when they are inside a textarea field. We have to delay the expansion of FORMFIELD till after the SEARCH has completed which is why it has to written with the use of $percnt and $quot. It is not an advantage to use the delay parameter in MULTITOPICSAVEINPUT to change " to $quot as this will delay the whole MULTITOPICSAVEINPUT macro and this has a negative impact on performance.
+Note that for textareas we cannot use the SEARCH feature =$formfield= because it always encodes newlines as &lt;br /&gt; (to avoid breaking tables) which is not desired when you want to show the current exact content in a text box while editing. For textarea use the $value token which returns the textarea field as raw unrendered text. When we use $value we have to delay the expansion of MULTITOPICSAVEINPUT till after the SEARCH has completed so we need to set the =delay= parameter.
 
 Example of use in formatted search format
 
 <verbatim>
-%MULTITOPICSAVEINPUT{"Description" type="textarea" web="$web" topic="$topic" size="20x4" value="$percntFORMFIELD{$quotDescription$quot web=$quot$web$quot topic=$quot$topic$quot}$percnt" }%
+%MULTITOPICSAVEINPUT{"Description" type="textarea" web="$web" topic="$topic" size="20x4" value="$value" delay="1"}%
 </verbatim>
 
+Example of use outside a table where we do not want any encoding in non-edit mode. And additionally we control edit mode by a URL parameter 'multiedit' and we use the topic locking feature.
+
+<verbatim>
+%MULTITOPICSAVEINPUT{"Description" type="textarea" web="Myweb" topic="TopicName" size="100x20" value="$value" encodeview="off" editmode="%URLPARAM{"multiedit" default="off"}% lockmode="on" }%
+</verbatim>
 
 ---+++ radio/checkbox
 
-=%<nop>MULTITOPICSAVEINPUT{"Field name" type="radio|checkbox" size="options per line" web="webname" topic="topicname" value="pre-selected values" options="list of options"}%=
+=%<nop>MULTITOPICSAVEINPUT{"Field name" type="radio|checkbox" size="options per line" web="webname" topic="topicname" value="$value" options="list of options" delay="number" editmode="on|off" lockmode="on|off" encodeview="on|off"}%=
 
 Radio buttons allows you to select one value of many. It is not possible to unselect all in the browser once one is selected.
 
@@ -129,36 +164,30 @@ Checkboxes allow multiple values to be checked and you can unselect all values.
 
 Values listed (comma separated if more than one for checkbox fields) will be checked when page is loaded in the browser.
 
-In formatted searches where we use MULTITOPICSAVEINPUT inside the format parameter of the SEARCH we have to delay the expansion with $percnt and $quot. The reason is that MULTITOPICSAVEINPUT needs to know the current value of the field for each found topic to be able to show the right radio button as checked. Without the $percnt/$quots the MULTITOPICSAVEINPUT would be expanded before the SEARCH is run with the string $formfield(Fieldname) as an unexpanded fixed text string. The result will be that none of the buttons/checkboxes/select fields will be be selected when viewed. It is very difficult to read the code when % and " are replaced by $percnt and $quot. Instead the MULTITOPICSAVEINPUT has a parameter called delay. If you set it to the number greater than the MULTITOPICSAVEINPUT will be escaped. The leading and trailing % will be replaced by =$percnt= and all double quotes (") will be replaced by =$quot=. Additionally the delay value will be decreased by 1. This is repeated each time the macro is called until the delay reaches 0. This means you can place MULTITOPICSAVEINPUT inside a formatted SEARCH and set the delay to 1. If the search is nested with a SEARCH inside a SEARCH you can set the delay to 2 etc etc.
+In formatted searches where we use MULTITOPICSAVEINPUT inside the format parameter of the SEARCH we have to delay the expansion with the =delay= parameter. The reason is that MULTITOPICSAVEINPUT needs to know the current value of the field for each found topic to be able to show the right radio button as checked. Without the delay the MULTITOPICSAVEINPUT would be expanded before the SEARCH is run and the topic would be viewed topic which has no form. The result will be that none of the buttons/checkboxes/select fields will be be selected when viewed.
 
 The size defines how many options will be displayed in a row. If you have 6 options and set the size as 2 you will see 3 rows with 2 buttons/checkboxes in each.
 
-The options parameter defines the values that will be presented. You define the options as a comma separated text string. Example: options="cat, mouse, dog and pony, elephant". Leading and trailing whitespace is removed from each value. Each value can be multiple words.
+The options parameter defines the values that will be presented. You define the options as a comma separated text string. Example: options="cat, mouse, dog and pony, elephant". Leading and trailing whitespace is removed from each value. Each value can be multiple words. The plugin will not automatically generate the options list for you as this would have a performance impact. See [[#AutoGeneratingOptions][[auto generating the options list]] for a tip how to automatically generate the list with minimal performance hit. 
 
 Both radio buttons and checkboxes are shown with the value to the right of the button/checkbox. 
 
-Example of radio button field in formatted search format using $percent and $quot to delay the expansion of MULTITOPICSAVEINPUT
+Example of radio button field in formatted search format using delay of the expansion of MULTITOPICSAVEINPUT
 
 <verbatim>
-$percntMULTITOPICSAVEINPUT{$quotType$quot type=$quotradio$quot size=$quot2$quot web=$quot$web$quot topic=$quot$topic$quot value=$quot$formfield(Type)$quot options=$quotBoolean, Integer, String, Discrete Strings$quot }$percnt
-</verbatim>
-
-Same example usind the delay feature - note how much more easy it is to read the code
-
-<verbatim>
-%MULTITOPICSAVEINPUT{"Type" type="radio" size="2" delay="1" web="$web" topic="$topic" value="$formfield(Type)" options="Boolean, Integer, String, Discrete Strings" }%
+%MULTITOPICSAVEINPUT{"Type" type="radio" size="2" delay="1" web="$web" topic="$topic" value="$value" options="Boolean, Integer, String, Discrete Strings"}%
 </verbatim>
 
 
 Example of checkbox field in formatted search format - again using the delay feature
 
 <verbatim>
-%MULTITOPICSAVEINPUT{"Default" type="checkbox" size="2" delay="1" web="$web" topic="$topic" value="$formfield(Default)" options="ape, cat, elephant, mouse" }%
+%MULTITOPICSAVEINPUT{"Default" type="checkbox" size="2" delay="1" web="$web" topic="$topic" value="$value" options="ape, cat, elephant, mouse"}%
 </verbatim>
 
 ---+++ select
 
-=%<nop>MULTITOPICSAVEINPUT{"Field name" type="select" multiple="on|off" size="number of shown options" web="webname" topic="topicname" value="pre-selected values" options="list of options"}%=
+=%<nop>MULTITOPICSAVEINPUT{"Field name" type="select" multiple="on|off" size="number of shown options" web="webname" topic="topicname" value="$value" options="list of options" delay="number" editmode="on|off" lockmode="on|off" encodeview="on|off"}%=
 
 The select field presents the values as a pull down list or scrollable list depending of the size. The select fields can be single value or multiple value. Multiple values are selected by using control + mouseclick.
 
@@ -166,29 +195,30 @@ The size parameter defines the number of values displayed in the input window. I
 
 Values listed (comma separated if multiple values) will be pre-selected when page is loaded in the browser.
 
-Like with buttons/checkboxes we have to delay the expansion of MULTITOPICSAVEINPUT with $percnt and $quot if the macro is used in the format parameter of SEARCH. And again we can use the delay feature to do it for us.
-
-Example of select field in formatted search format using delay to encode % and " into $percnt and $quot.
+And again we delay the expansion of MULTITOPICSAVEINPUT with the delay feature
 
 <verbatim>
-%MULTITOPICSAVEINPUT{"Friends" type="select" size="0" multiple="on" delay="1" web="$web" topic="$topic" value="$formfield(Friends)" options="ape, cat, elephant, mouse" }%
+%MULTITOPICSAVEINPUT{"Friends" type="select" size="0" multiple="on" delay="1" web="$web" topic="$topic" value="$value" options="ape, cat, elephant, mouse" }%
 </verbatim>
 
 ---+++ hidden
+
+=%<nop>MULTITOPICSAVEINPUT{"Field name" type="hidden" web="webname" topic="topicname" value="$value" delay="number" lockmode="on|off" encodeview="on|off"}%=
 
 Hidden fields allow submitting values without displaying them to the user. This type is typically used in combination with radio, checkbox or select when you want to add additional values to a multiple value field without showing the existing values to the user.
 
 For example. You have many topics with a field with combinations of values A, B and C. You want to let the user add the value D to many of the topics by selecting a single checkbox and a single submit. We use a combination of a hidden field and a checkbox field with the same field name. The hidden field is given the existing values. The SEARCH is made so it only shows the topic that do not have the value D.
 
 <verbatim>
-%SEARCH{"NOT(Platforms ~ '*D*') AND name ~ 'FuncReq*'" type="query" nonoise="on" format="| [[$topic][$formfield(Title)]] |%MULTITOPICSAVEINPUT{"Platforms" type="hidden" web="$web" topic="$topic" value="$formfield(Platforms)" }$percnt $percntMULTITOPICSAVEINPUT{"Platforms" type="checkbox" size="0" multiple="on" web="$web" topic="$topic" value="" options="D" }% |"}%
+%SEARCH{"NOT(Platforms ~ '*D*') AND name ~ 'FuncReq*'" type="query" nonoise="on" format="| [[$topic][$formfield(Title)]] |%MULTITOPICSAVEINPUT{"Platforms" type="hidden" web="$web" topic="$topic" value="$value" delay="1" }% %MULTITOPICSAVEINPUT{"Platforms" type="checkbox" size="1" multiple="on" web="$web" topic="$topic" value="" options="D" delay="1"}% |"}%
 </verbatim>
 
 ---++ Tips and Tricks
 
+#AutoGeneratingOptions
 ---+++ Auto generating the options list
 
-Instead of manually defining the list of options in MULTITOPICSAVEINPUT you can load the list of options from the Plugin form. Assuming the values are defined in the form itself this is an example of setting a macro which you can then use later. In this example the form topic is called !RequirementsForm and the field name is Platforms.
+Instead of manually defining the list of options in MULTITOPICSAVEINPUT you can load the list of options from the form definition topic. Assuming the values are defined in the form itself this is an example of setting a macro which you can then use later. In this example the form topic is called !RequirementsForm and the field name is Platforms.
 
 <verbatim>
    * Set PLATFORMOPTIONS = %SEARCH{"\| *Platforms *\|" topic="RequirementsForm" regex="on" nonoise="on" multiple="on" format="$pattern(.*?\| *Platforms *\|[^\|]*\|[^\|]*\| *([^\|]*?) *\|.*)"}%
@@ -196,7 +226,7 @@ Instead of manually defining the list of options in MULTITOPICSAVEINPUT you can 
 
 You can then use options="%<nop>PLATFORMOPTIONS%" in MULTITOPICSAVEINPUT
 
-If the values are defined in their own topic use instead this example
+If the option values are defined in their own topic use instead this example
 
 The topic called =FieldName= defines the values in a table like
 
@@ -211,7 +241,7 @@ The example below sets FIELDOPTIONS = Open, Closed, Rejected
    * Set FIELDOPTIONS = %SEARCH{ "^\|[^\|]*\| *option *\|" topic="FieldName" type="regex" multiple="on" nonoise="on" separator=", " format="$pattern(^\| *(.*?) *\|.*)" }%
 </verbatim>
 
----+++ Using the editmode parameter
+---+++ Using the editmode
 
 To take advantage of the =editmode= parameter for MULTITOPICSAVEINPUT add editmode="%<nop>URLPARAM{"multiedit" default="off"}% to MULTITOPICSAVEINPUT.
 
@@ -219,7 +249,97 @@ This will disable editing and just show the plain content given in the value opt
 
 At the top of the page put a link like this =[<nop>[%<nop>TOPICURL%?multiedit=on][Edit the requirements]]=. When the user clicks the link the page is reloaded and all fields will be in edit mode. A bit like we know from EditTablePlugin.
 
-[[%TOPICURL%?multiedit=on][Edit the requirements]] 
+Note that if you use editmode="off" and you have textarea fields it is difficult to use MULTITOPICSAVEINPUT inside a TML table because the newlines break the table row into multiple lines and that does not work with TML. Instead you can use HTML tables.
+
+---+++ Combining editmode with lockmode
+
+Combining editmode with lockmode="on" gives the application builder the ability to use the topic locking feature of Foswiki. This is the feature that warns you if you try to edit a topic and someone else is already editing a topic (or edited and left without saving or cancelling). The lock times out normally after 1 hour (set by $Foswiki::cfg{LeaseLength} in configure). With normal editing the user can choose to ignore the warning and trust that the merge function in Foswiki does its job well.
+
+When editing multiple topic - maybe 100s of topics - we do not want to end up resolving 100s of bad merges. By default !MultiTopicSavePlugin..
+
+   * Will not save a topic if you do not have write access rights to the topic.
+   * Will not save a topic if the topic is locked by another user
+   * Will always unlock a topic it is saved
+   
+There is however still the risk that you view the many topics using this plugin in edit mode. And while you are editing another user does the same, or edits a single topic the normal way. The other user will not know that you are already editing the many topics. The other person may save his work before you are done. And then you save your work to the many topics. What happens now is that the last save wins overwriting all the work the other person did. And it will happen silently. No merge will happen.
+
+We can avoid this using lockmode. You do this by setting lockmode="on" in the MULTITOPICSAVEINPUT. With this, viewing MULTITOPICSAVEINPUT fields will work like with
+
+   * With lockmode="on" and editmode="off"
+      * If you have write access to the topic and it is not locked by another user
+         * MULTITOPICSAVEINPUT field will display the value you gave it in non-edit mode.
+         * The topic will be unlocked
+      * If you do not have write access to the topic or it is locked by another user
+         * MULTITOPICSAVEINPUT field will display the value you gave it in non-edit mode.
+         * The topic will not be unlocked
+   * With lockmode="on" and editmode="on"
+      * If you have write access to the topic and it is not locked by another user
+         * The MULTITOPICSAVEINPUT field will be rendered in edit mode
+         * The topic will be locked by you
+      * If you do not have write access to the topic or it is locked by another user
+         * The MULTITOPICSAVEINPUT field will display the value you gave it in non-edit mode.
+         * The topic will not be locked.
+
+   * With lockmode="off" and editmode="off"
+      * Independent on write access and existing topic locks..
+         * MULTITOPICSAVEINPUT field will display the value you gave it in non-edit mode.
+         * The topic will not be locked
+   * With lockmode="off" and editmode="on"
+      * If you have write access to the topic and it is not locked by another user
+         * The MULTITOPICSAVEINPUT field will be rendered in edit mode
+         * The topic will not be locked
+      * If you do not have write access to the topic or it is locked by another user
+         * The MULTITOPICSAVEINPUT field will display the value you gave it in non-edit mode.
+         * The topic will not be locked.
+
+For the application builder it is important to observe the following.
+
+   * Use the lockmode when
+      * Using MULTITOPICSAVEINPUT for text fields and textarea fields that are likely to be edited by more than one person at a time
+      * Using MULTITOPICSAVEINPUT for all sorts of fields when you expect many users simultaneously editing using the multiedit feature.
+      
+   * Topics are unlocked when they are saved. This means that it is OK to change a field in a topic so it does not get displayed when you return to the submission topic after saving topics. The plugin will not leave the topics behind locked in this case
+   
+   * Make sure to build your submission page so editmode="off" by default if you use the lockmode. When you view the page the topics will be unlocked. And they get locked when you click on the link/button that changes to editmode="on". When you return after a save, the editmode will be off and topics will be unlocked again. Try to build the user interface on the topic so people are not tempted to leave the topic with all the topics in editmode causing them all to be locked for an hour. You cannot prevent this situation from happening, but you can minimize the occurance. If a user accidently closes the browser or clicks away from the submission page in editmode he can unlock all the topics by returning to the submission page and view it in none edit mode.
+   
+   * Since the locking and unlocking depends on the user locked in, it is a good idea to have a DENYTOPICACCESS = WikiGuest to force authentication before viewing in case your wiki allows general anonymous read access.
+
+Remember that by default lockmode is off and editmode is on (to allow very basic use of MULTITOPICSAVEINPUT)
+
+---+++ Using the encodeview feature
+
+With editmode="off" MULTITOPICSAVEINPUT by default returns the field value with newlines changed to &lt;br /&gt; and &#124; changed to $amp;#124;. This makes the value one single line with no vertical bars enabling using MULTITOPICSAVEINPUT inside TML tables.
+
+The encoding is always disabled in editmode because the encoding would alter the content of the saved fields in undesired ways. This is not a problem in editmode for textareas because the vertical bars appear inside html textarea tags and the table renderer know to ignore anything inside textareas. But the normal text fields cannot cope with vertical bars in edit mode. If you have an application where your users will put a vertical bar in a textfield, you can use textarea type fields with a height of 1.
+
+There are situations where the encodeview feature is not desired. If you wish to present the contents of a formfield so that TML tables are rendered as tables, TML bullets are correctly rendered etc. you can use MULTITOPICSAVEINPUT encodeview="off".
+
+Here is an example of implementing editing of a hidden form field inside the topic text. In this case the topic is the same topic but it could have been another topic as well.
+
+<verbatim>
+<form action='%SCRIPTURL{"rest"}%/MultiTopicSavePlugin/multitopicsave' method="post">
+
+%IF{"$ multiedit = 'on'" then="[[%TOPIC%][Cancel Editing]] , %MULTITOPICSAVESUBMIT{"Save Hiddenfield"}%" else="[[%TOPICURL%?multiedit=on][Edit Hiddenfield]]"}%
+
+%MULTITOPICSAVEINPUT{"Hiddenfield" type="textarea" size="80x4" editmode="%URLPARAM{"multiedit" default="off"}%"}%
+
+</form>
+</verbatim>
+
+---++ Sample Application
+
+When this plugin is installed you can find a small demo application that implements a formatted search that finds 3 topics and display the content. It has a link and when you click it the page is reloaded in edit mode. You can now edit the fields and save the topics using the save button that appears when the topic is in "edit" mode.
+
+The application demonstrated all the supported field types.
+
+   * Sandbox.MultiTopicSaveTest - The test Application
+   * Sandbox.MultiTopicSaveTestForm - The form definition topic
+   * Sandbox.MultiTopicSaveTestTarget1 - Test Topic
+   * Sandbox.MultiTopicSaveTestTarget2 - Test Topic
+   * Sandbox.MultiTopicSaveTestTarget3 - Test Topic
+
+
+
 
 <!--
 One line description, required for extensions repository catalog.
@@ -237,6 +357,7 @@ One line description, required for extensions repository catalog.
 |  Release: | %$RELEASE% |
 |  Version: | %$VERSION% |
 |  Change&nbsp;History: | <!-- versions below in reverse order -->&nbsp; |
+|  21 Feb 2010 (1.4) | Added parameter lock mode. Using this you can make applications without fear of edit conflicts between concurrent users <br />Value option for MULTITOPICSAVEINPUT now accepts the token $value so users can let the plugin fetch the current value for the formfield. <br />Added foswikiButton CSS class to the MULTITOPICSAVESUBMIT button for nice rendering. <br />Fixed a problem where using the delay feature for MULTITOPICSAVEINPUT would cause the plugin to also turn double quotes that are part of a field value into $quot <br />More documentation improvements <br />Added default values to size for text/textarea fields <br />Added encoding of newlines and vertical bars for MULTITOPICSAVEINPUT in non-edit mode. <br />Added new parameter encodeview to MULTITOPICSAVEINPUT so you can disable the encoding of newlines and vertical bars <br />Added working example application in Sandbox web |
 |  17 Feb 2010 (1.3) | Added the parameter editmode to MULTITOPICSAVEINPUT which can be used to show the value instead of an edit field. <br />Fixed bug where options were wrongly selected if they matched a substring of the one of the values.<br />Fixed bug where the count of saved topics gets too high if you change multiple fields <br /> Fixed bug where same topic was saved for each field changed causing performance impact <br /> Added the parameter =delay= for MULTITOPICSAVEINPUT so you can avoid un-readable code when escaping % and " using $percnt and $quot <br /> Improved documentation further adding tips and tricks including search patterns for picking lists of options from forms |
 |  17 Feb 2010 (1.2) | Added MULTITOPICSAVEMESSAGE macro so the user can get feedback on how the saving went |
 |  17 Feb 2010 (1.1) | Added type hidden. Added examples of use of all the different field types |

@@ -1,0 +1,9 @@
+%META:TOPICINFO{author="ProjectContributor" date="1266772017" format="1.1" version="1.1"}%
+---++ Form Topic !MultiTopicSavePlugin Test
+
+| *Name:* | *Type:* | *Size:* | *Values:* | *Tooltip message:* | *Attribute* |
+| Option | text | 50 | | Option Name | |
+| Type | select | 1 | Boolean, Integer, String, Discrete Strings | Date type of option | |
+| Animal | select | 5 | ape, cat, elephant, mouse | Default value when option is commented out | |
+| Friend | select+multi | 5 | ape, cat, elephant, mouse | Default value when option is commented out | |
+| Description | textarea | 80x4 | | Short Description | |

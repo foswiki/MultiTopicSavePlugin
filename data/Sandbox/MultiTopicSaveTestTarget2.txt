@@ -1,0 +1,9 @@
+%META:TOPICINFO{author="ProjectContributor" date="1266772356" format="1.1" version="1.1"}%
+Some text
+
+%META:FORM{name="MultiTopicSaveTestForm"}%
+%META:FIELD{name="Option" attributes="" title="Option" value="The is the 2nd option"}%
+%META:FIELD{name="Type" attributes="" title="Type" value="Discrete Strings"}%
+%META:FIELD{name="Animal" attributes="" title="Animal" value="mouse"}%
+%META:FIELD{name="Friend" attributes="" title="Friend" value="cat, elephant, mouse"}%
+%META:FIELD{name="Description" attributes="" title="Description" value="Some more text%0d%0a%0d%0a%22Hej%22%0d%0a%0d%0aWikiWord%0d%0a%0d%0awith line x"}%

@@ -1,3 +1,8 @@
 data/System/MultiTopicSavePlugin.txt 0644 Plugin doc page
+data/Sandbox/MultiTopicSaveTest.txt 0644 Plugin Example
+data/Sandbox/MultiTopicSaveTestForm.txt 0644 Plugin Example
+data/Sandbox/MultiTopicSaveTestTarget1.txt 0644 Plugin Example
+data/Sandbox/MultiTopicSaveTestTarget2.txt 0644 Plugin Example
+data/Sandbox/MultiTopicSaveTestTarget3.txt 0644 Plugin Example
 lib/Foswiki/Plugins/MultiTopicSavePlugin.pm 0444 Plugin Perl module
 pub/System/MultiTopicSavePlugin/example.png 0644 Plugin image

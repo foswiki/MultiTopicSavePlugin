@@ -1,0 +1,9 @@
+%META:TOPICINFO{author="ProjectContributor" date="1266775751" format="1.1" version="1.1"}%
+More text
+
+%META:FORM{name="MultiTopicSaveTestForm"}%
+%META:FIELD{name="Option" attributes="" title="Option" value="And now to the 3rd and best"}%
+%META:FIELD{name="Type" value="Boolean"}%
+%META:FIELD{name="Animal" attributes="" title="Animal" value="ape"}%
+%META:FIELD{name="Friend" attributes="" title="Friend" value="elephant, mouse"}%
+%META:FIELD{name="Description" attributes="" title="Description" value="Some description%0d%0aand a single new line%0d%0a%0d%0aand a double new line"}%
