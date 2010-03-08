@@ -29,7 +29,7 @@ use Foswiki::Plugins ();    # For the API version
 our $VERSION = '$Rev: 5771 $';
 
 # $RELEASE is used in the "Find More Extensions" automation in configure.
-our $RELEASE = '1.4';
+our $RELEASE = '1.5';
 
 # Short description of this plugin
 # One line description, is shown in the %SYSTEMWEB%.TextFormattingRules topic:
@@ -99,6 +99,14 @@ sub initPlugin {
                                      );
     Foswiki::Func::registerTagHandler( 'MULTITOPICSAVEMESSAGE',
                                        \&_MULTITOPICSAVEMESSAGE
+                                     );
+
+    Foswiki::Func::registerTagHandler( 'MULTITOPICSAVESTARTFORM',
+                                       \&_MULTITOPICSAVESTARTFORM
+                                     );
+                                     
+    Foswiki::Func::registerTagHandler( 'MULTITOPICSAVEENDFORM',
+                                       \&_MULTITOPICSAVEENDFORM
                                      );
 
     # Allow a sub to be called from the REST interface
@@ -208,8 +216,28 @@ sub _fetchFormFieldValue {
     
     my ( $meta, undef ) = Foswiki::Func::readTopic( $web, $topic );
     my $value = $meta->get( 'FIELD', $field );
+    
+    my $returnvalue = defined $value ? $value->{'value'} : '';
 
-    return ( $value->{'value'} || '' );
+    return $returnvalue;
+}
+
+=begin TML
+
+---++ _encodeValue($value) -> $value
+
+This function returns the input string encoded for view in TML tables
+We encode the most common destroyers of TML tables:
+newlines and vertical bars
+
+=cut
+
+sub _encodeValue {
+    my ( $value ) = @_;
+    $value =~ s/\r?\n/<br \/>/gs;
+    my $bar = '&#124;';
+    $value =~ s/\|/$bar/g;
+    return $value
 }
 
 
@@ -317,24 +345,22 @@ sub _MULTITOPICSAVEINPUT {
     # destroyers of TML tables, newlines and vertical bars
     my $encodeview = defined $params->{encodeview} ?
                    Foswiki::Func::isTrue( $params->{encodeview} ) : 1;
-    if ( !$editmode && $encodeview ) {
-        $value =~ s/\r?\n/<br \/>/gs;
-        my $bar = '&#124;';
-        $value =~ s/\|/$bar/g;
-    }
     
     if ( $editmode ) {    
         # if lockmode is enabled we lock topic when in edit mode and
         # return the value if the lock failed since we cannot edit
         if ( $lockmode ) {
-            return $value
-                unless (_topicLock( $targetWeb, $targetTopic, 'locked' ))[0];
+            unless ( (_topicLock( $targetWeb, $targetTopic, 'locked' ))[0] ) {
+                $value = _encodeValue($value) if $encodeview;
+                return $value
+            }
         }
     }
     else {
         # if lockmode is enabled we release topic lease when in non-edit mode       
         _topicLock( $targetWeb, $targetTopic, 'released' )
             if $lockmode;
+        $value = _encodeValue($value) if $encodeview;
         return $value;
     }
 
@@ -458,6 +484,25 @@ sub _MULTITOPICSAVEMESSAGE {
     # $params->{sideorder} will be 'onions'
       
     return "%URLPARAM{\"MULTITOPICSAVEMESSAGE\"}%";
+}
+
+
+# The function used to handle the %MULTITOPICSAVESTARTFORM% macro
+sub _MULTITOPICSAVESTARTFORM {
+    my($session, $params, $theTopic, $theWeb) = @_;    
+    
+    my $result = "<form action='%SCRIPTURL{\"rest\"}%/" .
+                 "MultiTopicSavePlugin/multitopicsave' method='post'>";
+    return $result;
+    
+}
+
+
+# The function used to handle the %MULTITOPICSAVEENDFORM% macro
+sub _MULTITOPICSAVEENDFORM {
+    my($session, $params, $theTopic, $theWeb) = @_;   
+
+    return "</form>";
 }
 
 

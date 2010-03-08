@@ -33,7 +33,7 @@ In the following example the plugin is used to
    * Set FRIENDS = %SEARCH{"\| *Friend *\|" topic="MultiTopicSaveTestForm" regex="on" nonoise="on" multiple="on" format="$pattern(.*?\| *Friend *\|[^\|]*\|[^\|]*\| *([^\|]*?) *\|.*)"}%
 -->
 
-<form action='%SCRIPTURL{"rest"}%/MultiTopicSavePlugin/multitopicsave' method="post">
+%MULTITOPICSAVESTARTFORM%
 
 %IF{"$ multiedit = 'on'" then="[[%TOPIC%][Cancel editing and release locks]] , %MULTITOPICSAVESUBMIT{"Save all changes"}%" else="[[%TOPICURL%?multiedit=on][Edit and lock the topics]]"}%
 
@@ -48,7 +48,7 @@ format="| $topic <br /> \
 %MULTITOPICSAVEINPUT{"Friend" type="select" size="0" multiple="on" delay="1" web="$web" topic="$topic" value="$value" options="%FRIENDS%" editmode="%URLPARAM{"multiedit" default="off"}%" lockmode="on"}% |"
 }%
 
-</form>
+%MULTITOPICSAVEENDFORM%
 
 %MULTITOPICSAVEMESSAGE%
 </verbatim>
@@ -59,9 +59,11 @@ format="| $topic <br /> \
 In the topic you must create a html form which targets the rest script of this plugin. This must be a post. The form would look like this
 
 <verbatim>
-<form action='%SCRIPTURL{"rest"}%/MultiTopicSavePlugin/multitopicsave' method="post">
+<form action='%SCRIPTURL{"rest"}%/MultiTopicSavePlugin/multitopicsave' method='post'>
 </form>
 </verbatim>
+
+To make is easier to make a form two macros %<nop>MULTITOPICSAVESTARTFORM% and %<nop>MULTITOPICSAVEENDFORM% creates the &lt;form action=... &gt; and the &lt;/form&gt;
 
 In the form you need to define fields that must have the name: =multitopicsavefield{Webname.Topicname}{Fieldname}= where the Webname.Topicname is the fully qualified name of the target topic and the Fieldname is the name of the form field you want to change.
 
@@ -80,6 +82,18 @@ In addition the form must submit two hidden fields redirectweb and redirecttopic
 </verbatim>
 
 To ease this task you will normally use the MULTITOPICSAVESUBMIT which creates a submit button and per default redirects the user back to the original topic from which the form was submitted.
+
+---+++ MULTITOPICSAVESTARTFORM
+
+   * Syntax =%<nop>MULTITOPICSAVESTARTFORM%
+   * Translates into this static text: =&lt;form action='%<nop>SCRIPTURL{"rest"}%/<nop>MultiTopicSavePlugin/multitopicsave' method='post'&gt;=
+   * Place this before the first use of MULTITOPICSAVEINPUT and MULTITOPICSAVESUBMIT.
+
+---+++ MULTITOPICSAVEENDFORM
+
+   * Syntax =%<nop>MULTITOPICSAVEENDFORM%
+   * Translates into this simple static text: =&lt;/form&gt;=
+   * Place this after the last use of MULTITOPICSAVEINPUT and MULTITOPICSAVESUBMIT.
 
 ---+++ MULTITOPICSAVESUBMIT -- Create submit button
 
@@ -328,9 +342,9 @@ Here is an example of implementing editing of a hidden form field inside the top
 
 ---++ Sample Application
 
-When this plugin is installed you can find a small demo application that implements a formatted search that finds 3 topics and display the content. It has a link and when you click it the page is reloaded in edit mode. You can now edit the fields and save the topics using the save button that appears when the topic is in "edit" mode.
+When this plugin is installed you can find a small demo application in the Sandbox web that implements a formatted search that finds 3 topics and display the content. It has a link and when you click it the page is reloaded in edit mode. You can now edit the fields and save the topics using the save button that appears when the topic is in "edit" mode.
 
-The application demonstrated all the supported field types.
+The Sandbox application demonstrates all the supported field types.
 
    * Sandbox.MultiTopicSaveTest - The test Application
    * Sandbox.MultiTopicSaveTestForm - The form definition topic
@@ -357,6 +371,7 @@ One line description, required for extensions repository catalog.
 |  Release: | %$RELEASE% |
 |  Version: | %$VERSION% |
 |  Change&nbsp;History: | <!-- versions below in reverse order -->&nbsp; |
+|  08 Mar 2010 (1.5) | Added MULTITOPICSAVESTARTFORM and MULTITOPICSAVEENDFORM. <br /> Fixed problem where TML tables were destroyed when you edit but a topic is locked or protected and therefore displayed in view mode <br /> Fixed problem rendering fields with the value 0 (zero) <br /> Made is clearer that the plugin bundles a demo application in Sandbox web |
 |  21 Feb 2010 (1.4) | Added parameter lock mode. Using this you can make applications without fear of edit conflicts between concurrent users <br />Value option for MULTITOPICSAVEINPUT now accepts the token $value so users can let the plugin fetch the current value for the formfield. <br />Added foswikiButton CSS class to the MULTITOPICSAVESUBMIT button for nice rendering. <br />Fixed a problem where using the delay feature for MULTITOPICSAVEINPUT would cause the plugin to also turn double quotes that are part of a field value into $quot <br />More documentation improvements <br />Added default values to size for text/textarea fields <br />Added encoding of newlines and vertical bars for MULTITOPICSAVEINPUT in non-edit mode. <br />Added new parameter encodeview to MULTITOPICSAVEINPUT so you can disable the encoding of newlines and vertical bars <br />Added working example application in Sandbox web |
 |  17 Feb 2010 (1.3) | Added the parameter editmode to MULTITOPICSAVEINPUT which can be used to show the value instead of an edit field. <br />Fixed bug where options were wrongly selected if they matched a substring of the one of the values.<br />Fixed bug where the count of saved topics gets too high if you change multiple fields <br /> Fixed bug where same topic was saved for each field changed causing performance impact <br /> Added the parameter =delay= for MULTITOPICSAVEINPUT so you can avoid un-readable code when escaping % and " using $percnt and $quot <br /> Improved documentation further adding tips and tricks including search patterns for picking lists of options from forms |
 |  17 Feb 2010 (1.2) | Added MULTITOPICSAVEMESSAGE macro so the user can get feedback on how the saving went |

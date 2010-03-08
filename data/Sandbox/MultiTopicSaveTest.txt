@@ -8,7 +8,7 @@
    * Set FRIENDS = %SEARCH{"\| *Friend *\|" topic="MultiTopicSaveTestForm" regex="on" nonoise="on" multiple="on" format="$pattern(.*?\| *Friend *\|[^\|]*\|[^\|]*\| *([^\|]*?) *\|.*)"}%
 -->
 
-<form action='%SCRIPTURL{"rest"}%/MultiTopicSavePlugin/multitopicsave' method="post">
+%MULTITOPICSAVESTARTFORM%
 
 %IF{"$ multiedit = 'on'" then="[[%TOPIC%][Cancel editing and release locks]] , %MULTITOPICSAVESUBMIT{"Save all changes"}%" else="[[%TOPICURL%?multiedit=on][Edit and lock the topics]]"}%
 
@@ -23,6 +23,6 @@ format="| $topic <br /> \
 %MULTITOPICSAVEINPUT{"Friend" type="select" size="0" multiple="on" delay="1" web="$web" topic="$topic" value="$value" options="%FRIENDS%" editmode="%URLPARAM{"multiedit" default="off"}%" lockmode="on"}% |"
 }%
 
-</form>
+%MULTITOPICSAVEENDFORM%
 
 %MULTITOPICSAVEMESSAGE%
