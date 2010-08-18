@@ -97,8 +97,10 @@ To ease this task you will normally use the MULTITOPICSAVESUBMIT which creates a
 
 ---+++ MULTITOPICSAVESUBMIT -- Create submit button
 
-   * Syntax =%<nop>MULTITOPICSAVESUBMIT{"Submit button text}%=
+   * Syntax =%<nop>MULTITOPICSAVESUBMIT{"Submit button text" returnweb="webname" returntopic="topicname"}%=
    * Adds a submit button with the text defined. It additionally adds the hidden fields that the plugin needs to send to return to the current topic after submission.
+   * Parameters =returnweb= and =returntopic= are optional and by default current topic and web. This is used when the topic with the MULTITOPICSAVESUBMIT is included in another topic. Otherwise you return to the included topic after submit. Simply use them with %<nop>BASEWEB% and %<nop>BASETOPIC% as values.
+   * Example =%<nop>MULTITOPICSAVESUBMIT{"Submit button text" returnweb="%<nop>BASEWEB%" returntopic="%<nop>BASETOPIC%"}%=
       
 ---+++ MULTITOPICSAVEINPUT -- Create input field
 
@@ -109,7 +111,7 @@ To ease this task you will normally use the MULTITOPICSAVESUBMIT which creates a
    | *Parameter* | *Description* | *Default* |
    | ="fieldname"= | The name of the field in the data form. If the field name has spaces you need to ommit the spaces | |
    | =type="text"= | type of input field. Valid types are =text=, =textarea=, =radio=, =checkbox=, =select=, and =hidden= | =text= |
-   | =multiple="on" | Allow multiple values for fields of the select type. For other types of fields this parameter is ignored | =off= |
+   | =multiple="on"= | Allow multiple values for fields of the select type. For other types of fields this parameter is ignored | =off= |
    | =size="1"= | The size of the input field <br />%BB% For text type field the size is the field width in characters. Default is 10.  <br />%BB% For textarea type field the size if specified as columns x rows (width x height).Default for textarea is '80x4' for 80 columns wide by 4 lines tall. <br/>%BB% For checkbox and radio type fields the size defines the number of buttons/checkboxes shown before in each displayed row of buttons/checkboxes. To show all the buttons in one row select a very large number. To show them all below each other set size to 1. Default is 1. <br />%BB% For select type field the size defines the number of values displayed in the input window. If no size is given all values are shown for multiple fields and a simple pulldown is shown for non-multiple. <br />%BB% For hidden type fields size is ignored | Depends on type |
    | =web="..."=  | Web of the target topic. In formatted searches you can put $web here | Current web |
    | =topic="..."= | Name of the target topic. In formatted searches you can put $topic here | Current topic |
@@ -371,6 +373,7 @@ One line description, required for extensions repository catalog.
 |  Release: | %$RELEASE% |
 |  Version: | %$VERSION% |
 |  Change&nbsp;History: | <!-- versions below in reverse order -->&nbsp; |
+|  19 Aug 2010 (1.6) | Added returnweb and returntopic to MULTITOPICSAVESUBMIT |
 |  08 Mar 2010 (1.5) | Added MULTITOPICSAVESTARTFORM and MULTITOPICSAVEENDFORM. <br /> Fixed problem where TML tables were destroyed when you edit but a topic is locked or protected and therefore displayed in view mode <br /> Fixed problem rendering fields with the value 0 (zero) <br /> Made is clearer that the plugin bundles a demo application in Sandbox web |
 |  21 Feb 2010 (1.4) | Added parameter lock mode. Using this you can make applications without fear of edit conflicts between concurrent users <br />Value option for MULTITOPICSAVEINPUT now accepts the token $value so users can let the plugin fetch the current value for the formfield. <br />Added foswikiButton CSS class to the MULTITOPICSAVESUBMIT button for nice rendering. <br />Fixed a problem where using the delay feature for MULTITOPICSAVEINPUT would cause the plugin to also turn double quotes that are part of a field value into $quot <br />More documentation improvements <br />Added default values to size for text/textarea fields <br />Added encoding of newlines and vertical bars for MULTITOPICSAVEINPUT in non-edit mode. <br />Added new parameter encodeview to MULTITOPICSAVEINPUT so you can disable the encoding of newlines and vertical bars <br />Added working example application in Sandbox web |
 |  17 Feb 2010 (1.3) | Added the parameter editmode to MULTITOPICSAVEINPUT which can be used to show the value instead of an edit field. <br />Fixed bug where options were wrongly selected if they matched a substring of the one of the values.<br />Fixed bug where the count of saved topics gets too high if you change multiple fields <br /> Fixed bug where same topic was saved for each field changed causing performance impact <br /> Added the parameter =delay= for MULTITOPICSAVEINPUT so you can avoid un-readable code when escaping % and " using $percnt and $quot <br /> Improved documentation further adding tips and tricks including search patterns for picking lists of options from forms |

@@ -29,7 +29,7 @@ use Foswiki::Plugins ();    # For the API version
 our $VERSION = '$Rev: 5771 $';
 
 # $RELEASE is used in the "Find More Extensions" automation in configure.
-our $RELEASE = '1.5';
+our $RELEASE = '1.6';
 
 # Short description of this plugin
 # One line description, is shown in the %SYSTEMWEB%.TextFormattingRules topic:
@@ -251,6 +251,9 @@ sub _MULTITOPICSAVESUBMIT {
     #             This can be used as a simple hash that maps parameter names
     #             to values, with _DEFAULT being the name for the default
     #             (unnamed) parameter.
+    #             returnweb = the web we want to return to after submit (optional)
+    #             returntopic = the topic we want to return to after submit
+    #                           can be web.topic format
     # $theTopic - name of the topic in the query
     # $theWeb   - name of the web in the query
     # Return: the result of processing the macro. This will replace the
@@ -263,8 +266,14 @@ sub _MULTITOPICSAVESUBMIT {
     # We cannot use the rest parameter endPoint because we need to return
     # to the submit with the URLPARAM MULTITOPICSAVEMESSAGE set.
     
-    my $result = "<input type='hidden' name='redirectweb' value='$theWeb' />" .
-                 "<input type='hidden' name='redirecttopic' value='$theTopic' />" .              
+    my $web = defined $params->{returnweb} ? $params->{returnweb} : $theWeb;
+    my $topic = defined $params->{returntopic} ? $params->{returntopic} : $theTopic;
+    # If returnweb was undefined and returntopic is web.topic form the result
+    # is as expected web.topic.
+    ($web, $topic) = Foswiki::Func::normalizeWebTopicName($web, $topic);
+    
+    my $result = "<input type='hidden' name='redirectweb' value='$web' />" .
+                 "<input type='hidden' name='redirecttopic' value='$topic' />" .              
                  "<input type='submit' class='foswikiButton' value='";
     $result .= $params->{_DEFAULT} || "Submit All Changes";
     $result .= "' />";
