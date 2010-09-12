@@ -29,7 +29,7 @@ use Foswiki::Plugins ();    # For the API version
 our $VERSION = '$Rev: 5771 $';
 
 # $RELEASE is used in the "Find More Extensions" automation in configure.
-our $RELEASE = '1.6';
+our $RELEASE = '1.7';
 
 # Short description of this plugin
 # One line description, is shown in the %SYSTEMWEB%.TextFormattingRules topic:
@@ -240,6 +240,22 @@ sub _encodeValue {
     return $value
 }
 
+=begin TML
+
+---++ _encodeHTMLEntities($value) -> $value
+
+This function encodes special characters to html entities
+so values can be used in input fields in edit mode
+
+=cut
+
+sub _encodeHTMLEntities {
+    my ( $value ) = @_;
+    $value =~ s/'/&#39;/g;
+    $value =~ s/</&lt;/g;
+    $value =~ s/>/&gt;/g;
+    return $value;
+}
 
 # The function used to handle the %MULTITOPICSAVESUBMIT{...}% macro
 sub _MULTITOPICSAVESUBMIT {
@@ -273,7 +289,8 @@ sub _MULTITOPICSAVESUBMIT {
     ($web, $topic) = Foswiki::Func::normalizeWebTopicName($web, $topic);
     
     my $result = "<input type='hidden' name='redirectweb' value='$web' />" .
-                 "<input type='hidden' name='redirecttopic' value='$topic' />" .              
+                 "<input type='hidden' name='redirecttopic' value='$topic' />" .
+                 "<input type='hidden' name='topic' value='$web.$topic' />" .
                  "<input type='submit' class='foswikiButton' value='";
     $result .= $params->{_DEFAULT} || "Submit All Changes";
     $result .= "' />";
@@ -358,10 +375,14 @@ sub _MULTITOPICSAVEINPUT {
     if ( $editmode ) {    
         # if lockmode is enabled we lock topic when in edit mode and
         # return the value if the lock failed since we cannot edit
+        # Otherwise input fields need special characters html encoded
         if ( $lockmode ) {
-            unless ( (_topicLock( $targetWeb, $targetTopic, 'locked' ))[0] ) {
+            if ( (_topicLock( $targetWeb, $targetTopic, 'locked' ))[0] ) {
+                $value = _encodeHTMLEntities( $value );
+            }
+            else {
                 $value = _encodeValue($value) if $encodeview;
-                return $value
+                return $value;
             }
         }
     }
@@ -645,7 +666,7 @@ sub restMultiTopicSave {
     $query->param(-name => 'MULTITOPICSAVEMESSAGE', -value => "$message");
     my $url = Foswiki::Func::getScriptUrl( $redirectweb, $redirecttopic, 'view' );
     Foswiki::Func::redirectCgiQuery( undef, $url, 1 );
-    return undef;
+    return "<nop>";
 }
 
 1;
