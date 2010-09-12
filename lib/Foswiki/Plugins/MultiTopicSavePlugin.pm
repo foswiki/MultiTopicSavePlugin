@@ -325,6 +325,7 @@ sub _MULTITOPICSAVEINPUT {
     my $field = $params->{_DEFAULT};
     my $targetWeb = $params->{web} || $theWeb;
     my $targetTopic = $params->{topic} || $theTopic;
+    my $currentWikiName = Foswiki::Func::getWikiName( );
 
     ( $targetWeb, $targetTopic ) =
       Foswiki::Func::normalizeWebTopicName( $targetWeb, $targetTopic );
@@ -372,19 +373,22 @@ sub _MULTITOPICSAVEINPUT {
     my $encodeview = defined $params->{encodeview} ?
                    Foswiki::Func::isTrue( $params->{encodeview} ) : 1;
     
+    if ( $currentWikiName eq $Foswiki::cfg{DefaultUserWikiName} ) {
+        $value = _encodeValue($value) if $encodeview;
+        return $value;
+    }
+
     if ( $editmode ) {    
         # if lockmode is enabled we lock topic when in edit mode and
         # return the value if the lock failed since we cannot edit
         # Otherwise input fields need special characters html encoded
         if ( $lockmode ) {
-            if ( (_topicLock( $targetWeb, $targetTopic, 'locked' ))[0] ) {
-                $value = _encodeHTMLEntities( $value );
-            }
-            else {
+            unless ( (_topicLock( $targetWeb, $targetTopic, 'locked' ))[0] ) {
                 $value = _encodeValue($value) if $encodeview;
                 return $value;
             }
         }
+        $value = _encodeHTMLEntities( $value );
     }
     else {
         # if lockmode is enabled we release topic lease when in non-edit mode       
@@ -574,6 +578,16 @@ sub restMultiTopicSave {
     ( $redirectweb, $redirecttopic ) =
       Foswiki::Func::normalizeWebTopicName( $redirectweb, $redirecttopic );
 
+    my $url = Foswiki::Func::getScriptUrl( $redirectweb, $redirecttopic, 'view' );
+    my $message = '';
+    
+    if ( $currentWikiName eq $Foswiki::cfg{DefaultUserWikiName} ) {
+        $message = "Only authenticated users are allowed to save multiple topics\n\n";
+        $query->param(-name => 'MULTITOPICSAVEMESSAGE', -value => "$message");
+        Foswiki::Func::redirectCgiQuery( undef, $url, 1 );
+        return undef;
+    }
+
     # First we put all the multitopicsavefield parameters in a hash
     # parameters{topicname}{field}=value where value can be an array of
     # values from select fields
@@ -595,7 +609,6 @@ sub restMultiTopicSave {
     # Now we traverse each topic and save all the parameters for
     # each topic if they have changed.
 
-    my $message = '';
     my $topicsavecounter = 0;         
 
     foreach my $topickey ( keys %parameters ) {
@@ -664,9 +677,8 @@ sub restMultiTopicSave {
     $message .= "Number of topics changed: $topicsavecounter";
    
     $query->param(-name => 'MULTITOPICSAVEMESSAGE', -value => "$message");
-    my $url = Foswiki::Func::getScriptUrl( $redirectweb, $redirecttopic, 'view' );
     Foswiki::Func::redirectCgiQuery( undef, $url, 1 );
-    return "<nop>";
+    return undef;
 }
 
 1;
