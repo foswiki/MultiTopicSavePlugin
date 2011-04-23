@@ -416,10 +416,12 @@ sub _MULTITOPICSAVEINPUT {
     elsif ( $type eq 'textarea' ) {
         $result = "<textarea class='foswikiTextarea' ";
         my ($cols, $rows) = ( 40, 5 );
-        if ( $size =~ m/(\d+)[xX](\d+)/ ) {
-           ($cols, $rows) = ( $1, $2 );
-        } 
-        $result .= "cols='$cols' rows='$rows' ";
+        if (defined $size ) {
+            if ( $size =~ m/(\d+)[xX](\d+)/ ) {
+                ($cols, $rows) = ( $1, $2 );
+            }
+	    $result .= "cols='$cols' rows='$rows' ";
+        }
         $result .= "name='multitopicsavefield{$topicFQN}{$field}'>";
         $result .= "$value";
         $result .= "</textarea>"
