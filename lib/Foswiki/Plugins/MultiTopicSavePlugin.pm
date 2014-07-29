@@ -26,7 +26,7 @@ use Foswiki::Plugins ();    # For the API version
 
 # $VERSION  should always be in the format$Rev: 9013 (2010-09-12) $ so that Foswiki can
 # determine the checked-in status of the extension.
-our $VERSION = '$Rev: 9013 (2010-09-12) $';
+our $VERSION = '1.8';
 
 # $RELEASE is used in the "Find More Extensions" automation in configure.
 our $RELEASE = '1.8';
