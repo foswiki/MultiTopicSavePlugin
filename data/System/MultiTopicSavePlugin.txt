@@ -16,6 +16,7 @@ The plugin will ignore topics that the user does not have write access to.
 
 Editing and saving multiple topics is disabled for guest users because editing multiple topics is too much power to give to non-authenticated users. 
 
+The plugin can also edit normal topic text. The plugin sees the topic text as a special field called 'text'
 
 ---++ Examples
 
@@ -231,6 +232,14 @@ For example. You have many topics with a field with combinations of values A, B 
 %SEARCH{"NOT(Platforms ~ '*D*') AND name ~ 'FuncReq*'" type="query" nonoise="on" format="| [[$topic][$formfield(Title)]] |%MULTITOPICSAVEINPUT{"Platforms" type="hidden" web="$web" topic="$topic" value="$value" delay="1" }% %MULTITOPICSAVEINPUT{"Platforms" type="checkbox" size="1" multiple="on" web="$web" topic="$topic" value="" options="D" delay="1"}% |"}%
 </verbatim>
 
+---++ Editing topic content
+
+The plugin can also handle the topic content. It works even for topics without a form. Use the special field name 'text' to display and edit the topic content.
+
+The only valid field type for this special field is 'textarea'. The plugin will ignore if you specify another type and will show the field as textarea.
+
+The plugin will show the content as raw markup inside the textarea.
+
 ---++ Tips and Tricks
 
 #AutoGeneratingOptions
@@ -370,11 +379,12 @@ One line description, required for extensions repository catalog.
 ---++ Plugin Info
 
 |  Author: | Foswiki:Main.KennethLavrsen |
-|  Copyright: | &copy; 2010, Kenneth Lavrsen |
+|  Copyright: | &copy; 2010-2014, Kenneth Lavrsen |
 |  License: | GPL ([[http://www.gnu.org/copyleft/gpl.html][GNU General Public License]]) |
 |  Release: | %$RELEASE% |
 |  Version: | %$VERSION% |
 |  Change&nbsp;History: | <!-- versions below in reverse order -->&nbsp; |
+|  25 Jul 2014 (1.8) | Added the ability to treat the topic text as a field called 'text' |
 |  12 Sep 2010 (1.7) | Fixed a problem with handling single quotes and html tags in text fields <br />Disabled topic editing and saving for guests. |
 |  19 Aug 2010 (1.6) | Added returnweb and returntopic to MULTITOPICSAVESUBMIT |
 |  08 Mar 2010 (1.5) | Added MULTITOPICSAVESTARTFORM and MULTITOPICSAVEENDFORM. <br /> Fixed problem where TML tables were destroyed when you edit but a topic is locked or protected and therefore displayed in view mode <br /> Fixed problem rendering fields with the value 0 (zero) <br /> Made is clearer that the plugin bundles a demo application in Sandbox web |
