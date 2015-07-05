@@ -23,13 +23,23 @@ use strict;
 
 use Foswiki::Func ();       # The plugins API
 use Foswiki::Plugins ();    # For the API version
+use Foswiki::Request;
+
+BEGIN {
+    # Backwards compatibility for Foswiki 1.1.x
+    unless ( Foswiki::Request->can('multi_param') ) {
+        no warnings 'redefine';
+        *Foswiki::Request::multi_param = \&Foswiki::Request::param;
+        use warnings 'redefine';
+    }
+}
 
 # $VERSION  should always be in the format$Rev: 9013 (2010-09-12) $ so that Foswiki can
 # determine the checked-in status of the extension.
-our $VERSION = '1.8';
+our $VERSION = '1.9';
 
 # $RELEASE is used in the "Find More Extensions" automation in configure.
-our $RELEASE = '1.8';
+our $RELEASE = '1.9';
 
 # Short description of this plugin
 # One line description, is shown in the %SYSTEMWEB%.TextFormattingRules topic:
@@ -603,7 +613,7 @@ sub restMultiTopicSave {
 
             my $topic = $1;
             my $fieldName = $2;
-            my @fieldValues = $query->param($key);
+            my @fieldValues = $query->multi_param($key);
 
             # Remove empty values, they are most likely dummy values used
             # to indicate that no value in a multiple checkbox or select

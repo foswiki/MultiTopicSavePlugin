@@ -384,6 +384,7 @@ One line description, required for extensions repository catalog.
 |  Release: | %$RELEASE% |
 |  Version: | %$VERSION% |
 |  Change&nbsp;History: | <!-- versions below in reverse order -->&nbsp; |
+|  04 Jul 2015 (1.9) | Call multi_param, not param, to process lists. |
 |  25 Jul 2014 (1.8) | Added the ability to treat the topic text as a field called 'text' |
 |  12 Sep 2010 (1.7) | Fixed a problem with handling single quotes and html tags in text fields <br />Disabled topic editing and saving for guests. |
 |  19 Aug 2010 (1.6) | Added returnweb and returntopic to MULTITOPICSAVESUBMIT |
@@ -396,4 +397,4 @@ One line description, required for extensions repository catalog.
 |  Home: | http://foswiki.org/Extensions/%TOPIC% |
 |  Support: | http://foswiki.org/Support/%TOPIC% |
 
-%META:FILEATTACHMENT{name="example.png" attachment="example.png" attr="h" comment="" date="1266362936" path="example.png" user="ProjectContributor" version="1"}%
+%META:FILEATTACHMENT{name="example.png" attachment="example.png" attr="h" comment="" date="1436067299" user="ProjectContributor" version="1"}%
