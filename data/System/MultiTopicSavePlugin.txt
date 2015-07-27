@@ -124,7 +124,8 @@ To ease this task you will normally use the MULTITOPICSAVESUBMIT which creates a
    | =encodeview="off"= | By default the value returned by MULTITOPICSAVEINPUT with editmode="off" is encoded to enable display of textareas inside TML tables. The encoding changes newlines to &lt;br /&gt; and &#124; to &amp;#124;. This encoding is not always desired and can be turned off by setting encodeview="off". This feature is mostly relevant with text and textarea type fields | =on= | 
    | =lockmode="on"= | Lock topics when editmode="on" and unlock them when editmode="off". If lockmode is enabled and a topic is being edited by someone else or you have no edit access rights, the field will be rendered as if editmode is off. Ie. the value is shown in plain text. | =off= |
    | =delay="1"=  | Number of times the MULTITOPICSAVEINPUT will delay its own expansion by changing the first and last %-sign to $percnt and all double quotes (") to $quot. This is used when you use MULTITOPICSAVEINPUT inside the format parameter of a SEARCH macro and you do not want to expand MULTITOPICSAVEINPUT until the SEARCH is completed. Set the delay to 1 if it is a single level SEARCH. If you have nested SEARCHes you can set delay to the level of nesting. | =0= |
-      
+   | =placeholder="..."= | A placeholder text shown in the browser when the text field is empty. The purpose is to help the user. The placeholder text is not saved. It is only displayed in the browser when the field is empty | none |
+   
 ---+++ MULTITOPICSAVEMESSAGE -- Display message after saving
    * Syntax: %<nop>MULTITOPICSAVEMESSAGE%
    * This macro shows messages about topics that were not saved due to lack access rights and it shows the total number of saved topics. This macro is only expanded when you return to the page after submitting the content.
@@ -135,7 +136,7 @@ To ease this task you will normally use the MULTITOPICSAVESUBMIT which creates a
 
 ---+++ text
 
-=%<nop>MULTITOPICSAVEINPUT{"Field name" type="text" size="field size" web="webname" topic="topicname" value="$value" delay="number" editmode="on|off" lockmode="on|off" encodeview="on|off"}%=
+=%<nop>MULTITOPICSAVEINPUT{"Field name" type="text" size="field size" web="webname" topic="topicname" value="$value" placeholder="placeholder text" delay="number" editmode="on|off" lockmode="on|off" encodeview="on|off"}%=
 
 This is the most simple type. This creates a plain text field which has a width given by the size parameter. When using this type of field in a format of a SEARCH you may choose not to use the value="$value". If the text never contains quotes (") you can with get a small performance gain by using value="$formfield(fieldname)" and delay="0" because this means MULTITOPICSAVEINPUT only gets expanded once per page view. But often people will use quotes in the text so be careful with this approach. It is safer to use value="$value" and delay="1".
 
@@ -144,7 +145,7 @@ If your text fields contain vertical bars and you use MULTITOPICSAVEINPUT in a T
 Example of use in formatted search format
 
 <verbatim>
-%MULTITOPICSAVEINPUT{"Option" type="text" size="20" web="$web" topic="$topic" value="$value" delay="1" editmode="on" lockmode="off"}%
+%MULTITOPICSAVEINPUT{"Option" type="text" size="20" web="$web" topic="$topic" value="$value" placeholder="Please enter name of customer" delay="1" editmode="on" lockmode="off"}%
 </verbatim>
 
 Or taking advantage of the default values for the parameters we can simply use
@@ -379,11 +380,12 @@ One line description, required for extensions repository catalog.
 ---++ Plugin Info
 
 |  Author: | Foswiki:Main.KennethLavrsen |
-|  Copyright: | &copy; 2010-2014, Kenneth Lavrsen |
+|  Copyright: | &copy; 2010-2015, Kenneth Lavrsen |
 |  License: | GPL ([[http://www.gnu.org/copyleft/gpl.html][GNU General Public License]]) |
 |  Release: | %$RELEASE% |
 |  Version: | %$VERSION% |
 |  Change&nbsp;History: | <!-- versions below in reverse order -->&nbsp; |
+|  27 Jul 2015 (1.10) | Added placeholder option to MULTITOPICSAVEINPUT for text type fields |
 |  04 Jul 2015 (1.9) | Call multi_param, not param, to process lists. |
 |  25 Jul 2014 (1.8) | Added the ability to treat the topic text as a field called 'text' |
 |  12 Sep 2010 (1.7) | Fixed a problem with handling single quotes and html tags in text fields <br />Disabled topic editing and saving for guests. |

@@ -36,10 +36,10 @@ BEGIN {
 
 # $VERSION  should always be in the format$Rev: 9013 (2010-09-12) $ so that Foswiki can
 # determine the checked-in status of the extension.
-our $VERSION = '1.9';
+our $VERSION = '1.10';
 
 # $RELEASE is used in the "Find More Extensions" automation in configure.
-our $RELEASE = '1.9';
+our $RELEASE = '1.10';
 
 # Short description of this plugin
 # One line description, is shown in the %SYSTEMWEB%.TextFormattingRules topic:
@@ -337,6 +337,7 @@ sub _MULTITOPICSAVEINPUT {
     my $targetWeb = $params->{web} || $theWeb;
     my $targetTopic = $params->{topic} || $theTopic;
     my $currentWikiName = Foswiki::Func::getWikiName( );
+    my $placeholder = $params->{placeholder};
 
     ( $targetWeb, $targetTopic ) =
       Foswiki::Func::normalizeWebTopicName( $targetWeb, $targetTopic );
@@ -426,6 +427,7 @@ sub _MULTITOPICSAVEINPUT {
         $size = 10 if ( !$size || $size < 1 );
         $result .= "size='$size' ";
         $result .= "name='multitopicsavefield{$topicFQN}{$field}' ";
+        $result .= "placeholder='$placeholder' " if defined $placeholder;
         $result .= "value='" . $value . "' />";
     }
     elsif ( $type eq 'textarea' ) {
@@ -722,7 +724,7 @@ __END__
 #
 # Plugin for Foswiki - The Free and Open Source Wiki, http://foswiki.org/
 #
-# Copyright (C) 2010 Kenneth Lavrsen and Foswiki Contributors.
+# Copyright (C) 2010-2015 Kenneth Lavrsen and Foswiki Contributors.
 # 
 # Foswiki Contributors are listed in the AUTHORS file in the root
 # of this distribution. NOTE: Please extend that file, not this notice.
