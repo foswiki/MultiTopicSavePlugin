@@ -1,3 +1,4 @@
+%META:TOPICINFO{author="ProjectContributor" date="1448386968" format="1.1" version="1"}%
 %META:TOPICPARENT{name="Plugins"}%
 ---+ Multi Topic Save Plugin
 
@@ -385,6 +386,7 @@ One line description, required for extensions repository catalog.
 |  Release: | %$RELEASE% |
 |  Version: | %$VERSION% |
 |  Change&nbsp;History: | <!-- versions below in reverse order -->&nbsp; |
+|  24 Nov 2015 (1.11) | Foswikitask:Item13868: Add TOPICINFO to the Extension topic. |
 |  27 Jul 2015 (1.10) | Added placeholder option to MULTITOPICSAVEINPUT for text type fields |
 |  04 Jul 2015 (1.9) | Call multi_param, not param, to process lists. |
 |  25 Jul 2014 (1.8) | Added the ability to treat the topic text as a field called 'text' |
@@ -399,4 +401,4 @@ One line description, required for extensions repository catalog.
 |  Home: | http://foswiki.org/Extensions/%TOPIC% |
 |  Support: | http://foswiki.org/Support/%TOPIC% |
 
-%META:FILEATTACHMENT{name="example.png" attachment="example.png" attr="h" comment="" date="1436067299" user="ProjectContributor" version="1"}%
+%META:FILEATTACHMENT{name="example.png" attachment="example.png" attr="h" comment="" date="1448386968" user="ProjectContributor" version="1"}%

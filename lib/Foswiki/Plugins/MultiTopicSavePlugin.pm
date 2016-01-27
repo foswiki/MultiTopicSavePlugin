@@ -36,10 +36,10 @@ BEGIN {
 
 # $VERSION  should always be in the format$Rev: 9013 (2010-09-12) $ so that Foswiki can
 # determine the checked-in status of the extension.
-our $VERSION = '1.10';
+our $VERSION = '1.12';
 
 # $RELEASE is used in the "Find More Extensions" automation in configure.
-our $RELEASE = '1.10';
+our $RELEASE = '1.12';
 
 # Short description of this plugin
 # One line description, is shown in the %SYSTEMWEB%.TextFormattingRules topic:
@@ -611,7 +611,7 @@ sub restMultiTopicSave {
     # parameters{topicname}{field}=value where value can be an array of
     # values from select fields
     foreach my $key ( $query->param() ) {
-        if ( $key =~ /^multitopicsavefield{(.*?)}{(.*?)}$/ ) {
+        if ( $key =~ /^multitopicsavefield\{(.*?)\}\{(.*?)\}$/ ) {
 
             my $topic = $1;
             my $fieldName = $2;
